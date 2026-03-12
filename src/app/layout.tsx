@@ -4,6 +4,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ReelBox",
   description: "인스타그램 릴스 스마트 저장 & 검색",
+  manifest: "/manifest.json",
+  themeColor: "#7c3aed",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ReelBox",
+  },
 };
 
 export default function RootLayout({
