@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Reel {
+  id         String    @id @default(cuid())
+  url        String    @unique
+  thumbnail  String?
+  memo       String?
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  tags       ReelTag[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  reels Reel[]
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  reels ReelTag[]
+}
+
+model ReelTag {
+  reelId String
+  tagId  String
+  reel   Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([reelId, tagId])
+}
