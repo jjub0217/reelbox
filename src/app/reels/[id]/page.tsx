@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getReel } from "@/lib/actions";
 import { ReelDetailActions } from "./detail-actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReelDetailPage({
   params,
 }: {

@@ -4,6 +4,8 @@ import { CategoryFilter } from "@/components/category-filter";
 import { ReelGrid } from "@/components/reel-grid";
 import { getReels, getCategories } from "@/lib/actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage({
   searchParams,
 }: {

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ReelForm } from "@/components/reel-form";
 import { getCategories } from "@/lib/actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewReelPage() {
   const categories = await getCategories();
 

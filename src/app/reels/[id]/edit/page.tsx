@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getReel, getCategories } from "@/lib/actions";
 import { ReelForm } from "@/components/reel-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditReelPage({
   params,
 }: {
