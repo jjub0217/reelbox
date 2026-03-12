@@ -89,8 +89,8 @@ export function ReelForm({
       </div>
 
       {thumbnailPreview && (
-        <div className="bg-gray-800 border border-gray-700 rounded-xl h-[80px] overflow-hidden">
-          <img src={thumbnailPreview} alt="" className="w-full h-full object-cover" />
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <img src={thumbnailPreview} alt="" className="w-full" />
         </div>
       )}
 

@@ -1,4 +1,21 @@
-export async function extractThumbnail(url: string): Promise<string | null> {
+function isInstagramUrl(url: string): boolean {
+  return /instagram\.com\/(p|reel|reels)\//i.test(url);
+}
+
+async function extractViaMicrolink(url: string): Promise<string | null> {
+  try {
+    const apiUrl = `https://api.microlink.io?url=${encodeURIComponent(url)}`;
+    const response = await fetch(apiUrl, {
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await response.json();
+    return data?.data?.image?.url || null;
+  } catch {
+    return null;
+  }
+}
+
+async function extractViaOgTags(url: string): Promise<string | null> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -22,4 +39,11 @@ export async function extractThumbnail(url: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+export async function extractThumbnail(url: string): Promise<string | null> {
+  if (isInstagramUrl(url)) {
+    return extractViaMicrolink(url);
+  }
+  return extractViaOgTags(url);
 }
