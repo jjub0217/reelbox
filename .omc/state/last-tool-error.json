@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"npx next build 2>&1\",\"timeout\":60000,\"description\":\"Verify build with Prisma adapter\"}",
+  "error": "Exit code 1\n▲ Next.js 16.1.6 (Turbopack)\n- Environments: .env\n\n  Creating an optimized production build ...\n✓ Compiled successfully in 1547.0ms\n  Running TypeScript ...\nFailed to compile.\n\n./src/lib/db.ts:9:32\nType error: Argument of type 'string' is not assignable to parameter of type 'Pool | PoolConfig'.\n\n\u001b[0m \u001b[90m  7 |\u001b[39m\n \u001b[90m  8 |\u001b[39m \u001b[36mfunction\u001b[39m createPrismaClient() {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m   \u001b[36mconst\u001b[39m adapter \u001b[33m=\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mPrismaPg\u001b[39m(proc...",
+  "timestamp": "2026-03-12T10:50:22.807Z",
+  "retry_count": 4
+}
