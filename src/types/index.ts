@@ -3,6 +3,8 @@ export type ReelWithRelations = {
   url: string;
   thumbnail: string | null;
   memo: string | null;
+  review: string | null;
+  visited: boolean;
   categoryId: string | null;
   category: { id: string; name: string } | null;
   tags: { tag: { id: string; name: string } }[];

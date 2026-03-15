@@ -40,7 +40,7 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (tags
         onBlur={addTag}
         enterKeyHint="done"
         placeholder={value.length === 0 ? "태그 입력 후 완료..." : ""}
-        className="bg-transparent text-sm text-gray-100 placeholder-gray-500 outline-none flex-1 min-w-[80px]"
+        className="bg-transparent text-sm text-gray-100 placeholder-gray-500 outline-none flex-1 min-w-20"
       />
     </div>
   );

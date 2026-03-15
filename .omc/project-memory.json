@@ -1,0 +1,229 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1773555522401,
+  "projectRoot": "/Users/osejin/Desktop/reelbox",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "next",
+        "version": "16.1.6",
+        "category": "fullstack"
+      },
+      {
+        "name": "react",
+        "version": "19.2.3",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.3",
+        "category": "frontend"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "next dev",
+      "postinstall": "prisma generate",
+      "build": "next build",
+      "start": "next start",
+      "lint": "eslint"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": "type-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "public",
+      "src"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 0,
+      "lastAccessed": 1773555522380,
+      "keyFiles": []
+    },
+    "prisma": {
+      "path": "prisma",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1773555522380,
+      "keyFiles": [
+        "schema.prisma"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 8,
+      "lastAccessed": 1773555522381,
+      "keyFiles": [
+        "file.svg",
+        "globe.svg",
+        "icon-192.svg",
+        "icon-512.svg",
+        "manifest.json"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1773555522381,
+      "keyFiles": []
+    },
+    "prisma/migrations": {
+      "path": "prisma/migrations",
+      "purpose": "Database migrations",
+      "fileCount": 1,
+      "lastAccessed": 1773555522383,
+      "keyFiles": [
+        "migration_lock.toml"
+      ]
+    },
+    "src/app": {
+      "path": "src/app",
+      "purpose": "Application code",
+      "fileCount": 4,
+      "lastAccessed": 1773555522385,
+      "keyFiles": [
+        "favicon.ico",
+        "globals.css",
+        "layout.tsx"
+      ]
+    },
+    "src/components": {
+      "path": "src/components",
+      "purpose": "UI components",
+      "fileCount": 8,
+      "lastAccessed": 1773555522385,
+      "keyFiles": [
+        "category-filter.tsx",
+        "category-select.tsx",
+        "delete-dialog.tsx"
+      ]
+    },
+    "src/lib": {
+      "path": "src/lib",
+      "purpose": "Library code",
+      "fileCount": 3,
+      "lastAccessed": 1773555522385,
+      "keyFiles": [
+        "actions.ts",
+        "db.ts",
+        "og.ts"
+      ]
+    },
+    "src/types": {
+      "path": "src/types",
+      "purpose": "Type definitions",
+      "fileCount": 1,
+      "lastAccessed": 1773555522385,
+      "keyFiles": [
+        "index.ts"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src/components/reel-card.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1773566512008,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/actions.ts",
+      "accessCount": 8,
+      "lastAccessed": 1773565791968,
+      "type": "file"
+    },
+    {
+      "path": "src/components/reel-form.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1773565809064,
+      "type": "file"
+    },
+    {
+      "path": "src/components/tag-input.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1773564669823,
+      "type": "file"
+    },
+    {
+      "path": "src/app/reels/[id]/page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1773565817873,
+      "type": "file"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773560913660,
+      "type": "file"
+    },
+    {
+      "path": "src/components/delete-dialog.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773564678983,
+      "type": "file"
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "accessCount": 2,
+      "lastAccessed": 1773565749660,
+      "type": "file"
+    },
+    {
+      "path": "src/types/index.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773565761872,
+      "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 1,
+      "lastAccessed": 1773564655124,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}

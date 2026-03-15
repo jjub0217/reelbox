@@ -21,6 +21,7 @@ export function ReelForm({
   const [categoryId, setCategoryId] = useState(reel?.categoryId || "");
   const [tags, setTags] = useState<string[]>(reel?.tags.map(({ tag }) => tag.name) || []);
   const [memo, setMemo] = useState(reel?.memo || "");
+  const [review, setReview] = useState(reel?.review || "");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(reel?.thumbnail || null);
@@ -54,6 +55,7 @@ export function ReelForm({
     const formData = {
       url: url.trim(),
       memo: memo.trim() || undefined,
+      review: review.trim() || undefined,
       categoryId: categoryId || undefined,
       tagNames: tags,
     };
@@ -110,6 +112,17 @@ export function ReelForm({
           value={memo}
           onChange={(e) => setMemo(e.target.value)}
           placeholder="자유롭게 메모를 입력하세요..."
+          rows={3}
+          className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="text-xs text-gray-400 font-semibold mb-2 block">후기</label>
+        <textarea
+          value={review}
+          onChange={(e) => setReview(e.target.value)}
+          placeholder="방문/구매 후기를 입력하세요..."
           rows={3}
           className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
         />

@@ -21,7 +21,7 @@ export default async function ReelDetailPage({
         <ReelDetailActions reelId={reel.id} />
       </div>
       <div className="p-6">
-        <div className="bg-gray-800 border border-gray-700 rounded-xl h-[200px] flex items-center justify-center mb-5 overflow-hidden">
+        <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 flex items-center justify-center mb-5 overflow-hidden">
           {reel.thumbnail ? (
             <img src={reel.thumbnail} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -56,6 +56,12 @@ export default async function ReelDetailPage({
           <div className="mb-4">
             <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1.5">메모</p>
             <div className="bg-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-300 leading-relaxed">{reel.memo}</div>
+          </div>
+        )}
+        {reel.review && (
+          <div className="mb-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1.5">후기</p>
+            <div className="bg-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-300 leading-relaxed">{reel.review}</div>
           </div>
         )}
         <p className="text-xs text-gray-600 text-right">

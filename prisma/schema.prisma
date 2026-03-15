@@ -11,6 +11,8 @@ model Reel {
   url        String    @unique
   thumbnail  String?
   memo       String?
+  review     String?
+  visited    Boolean   @default(false)
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
   tags       ReelTag[]

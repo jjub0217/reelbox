@@ -8,10 +8,11 @@ import { Prisma } from "@prisma/client";
 export async function createReel(formData: {
   url: string;
   memo?: string;
+  review?: string;
   categoryId?: string;
   tagNames: string[];
 }) {
-  const { url, memo, categoryId, tagNames } = formData;
+  const { url, memo, review, categoryId, tagNames } = formData;
 
   const existing = await prisma.reel.findUnique({ where: { url } });
   if (existing) {
@@ -36,6 +37,7 @@ export async function createReel(formData: {
       url,
       thumbnail,
       memo: memo || null,
+      review: review || null,
       categoryId: categoryId || null,
       tags: {
         create: tags.map((tag) => ({ tagId: tag.id })),
@@ -52,11 +54,12 @@ export async function updateReel(
   formData: {
     url: string;
     memo?: string;
+    review?: string;
     categoryId?: string;
     tagNames: string[];
   }
 ) {
-  const { url, memo, categoryId, tagNames } = formData;
+  const { url, memo, review, categoryId, tagNames } = formData;
 
   const existing = await prisma.reel.findFirst({
     where: { url, NOT: { id } },
@@ -83,6 +86,7 @@ export async function updateReel(
       data: {
         url,
         memo: memo || null,
+        review: review || null,
         categoryId: categoryId || null,
         tags: {
           create: tags.map((tag) => ({ tagId: tag.id })),
@@ -94,6 +98,16 @@ export async function updateReel(
   revalidatePath("/");
   revalidatePath(`/reels/${id}`);
   return { success: true };
+}
+
+export async function toggleVisited(id: string) {
+  const reel = await prisma.reel.findUnique({ where: { id }, select: { visited: true } });
+  if (!reel) return { error: "릴스를 찾을 수 없습니다" };
+
+  await prisma.reel.update({ where: { id }, data: { visited: !reel.visited } });
+  revalidatePath("/");
+  revalidatePath(`/reels/${id}`);
+  return { success: true, visited: !reel.visited };
 }
 
 export async function deleteReel(id: string) {

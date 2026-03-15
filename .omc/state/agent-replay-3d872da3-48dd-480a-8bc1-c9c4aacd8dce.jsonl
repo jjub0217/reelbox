@@ -10,3 +10,9 @@
 {"t":0,"agent":"a17bbf3","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":108642}
 {"t":0,"agent":"a86036f","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a86036f","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":120196}
+{"t":0,"agent":"a519c2b","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a9b8c24","agent_type":"executor","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a9b8c24","agent_type":"executor","event":"agent_stop","success":true,"duration_ms":231167}
+{"t":0,"agent":"a69f581","agent_type":"Explore","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a69f581","agent_type":"Explore","event":"agent_stop","success":true,"duration_ms":16011}
+{"t":0,"agent":"a2ddcd7","agent_type":"unknown","event":"agent_stop","success":true}
