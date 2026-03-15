@@ -14,7 +14,7 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (tags
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       e.preventDefault();
       addTag();
     }
