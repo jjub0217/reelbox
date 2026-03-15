@@ -34,11 +34,11 @@ export function ReelCard({ reel }: { reel: ReelWithRelations }) {
         </div>
         <div className="p-3">
           <div className="flex gap-1 flex-wrap">
-            {reel.category && (
-              <span className="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full text-[10px]">
-                {reel.category.name}
+            {reel.categories.map(({ category }) => (
+              <span key={category.id} className="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full text-[10px]">
+                {category.name}
               </span>
-            )}
+            ))}
             {reel.tags.map(({ tag }) => (
               <span key={tag.id} className="bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full text-[10px]">
                 {tag.name}

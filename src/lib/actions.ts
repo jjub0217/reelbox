@@ -9,10 +9,10 @@ export async function createReel(formData: {
   url: string;
   memo?: string;
   review?: string;
-  categoryId?: string;
+  categoryIds: string[];
   tagNames: string[];
 }) {
-  const { url, memo, review, categoryId, tagNames } = formData;
+  const { url, memo, review, categoryIds, tagNames } = formData;
 
   const existing = await prisma.reel.findUnique({ where: { url } });
   if (existing) {
@@ -38,7 +38,9 @@ export async function createReel(formData: {
       thumbnail,
       memo: memo || null,
       review: review || null,
-      categoryId: categoryId || null,
+      categories: {
+        create: categoryIds.map((categoryId) => ({ categoryId })),
+      },
       tags: {
         create: tags.map((tag) => ({ tagId: tag.id })),
       },
@@ -55,11 +57,11 @@ export async function updateReel(
     url: string;
     memo?: string;
     review?: string;
-    categoryId?: string;
+    categoryIds: string[];
     tagNames: string[];
   }
 ) {
-  const { url, memo, review, categoryId, tagNames } = formData;
+  const { url, memo, review, categoryIds, tagNames } = formData;
 
   const existing = await prisma.reel.findFirst({
     where: { url, NOT: { id } },
@@ -80,6 +82,7 @@ export async function updateReel(
   );
 
   await prisma.$transaction([
+    prisma.reelCategory.deleteMany({ where: { reelId: id } }),
     prisma.reelTag.deleteMany({ where: { reelId: id } }),
     prisma.reel.update({
       where: { id },
@@ -87,7 +90,9 @@ export async function updateReel(
         url,
         memo: memo || null,
         review: review || null,
-        categoryId: categoryId || null,
+        categories: {
+          create: categoryIds.map((categoryId) => ({ categoryId })),
+        },
         tags: {
           create: tags.map((tag) => ({ tagId: tag.id })),
         },
@@ -130,9 +135,9 @@ export async function getReels({
   const where: Prisma.ReelWhereInput = {};
 
   if (categoryId === "uncategorized") {
-    where.categoryId = null;
+    where.categories = { none: {} };
   } else if (categoryId) {
-    where.categoryId = categoryId;
+    where.categories = { some: { categoryId } };
   }
 
   if (search) {
@@ -141,7 +146,7 @@ export async function getReels({
       OR: [
         { memo: { contains: keyword, mode: "insensitive" as const } },
         { tags: { some: { tag: { name: { contains: keyword, mode: "insensitive" as const } } } } },
-        { category: { name: { contains: keyword, mode: "insensitive" as const } } },
+        { categories: { some: { category: { name: { contains: keyword, mode: "insensitive" as const } } } } },
       ],
     }));
   }
@@ -149,7 +154,7 @@ export async function getReels({
   const reels = await prisma.reel.findMany({
     where,
     include: {
-      category: true,
+      categories: { include: { category: true } },
       tags: { include: { tag: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -168,7 +173,7 @@ export async function getReel(id: string) {
   return prisma.reel.findUnique({
     where: { id },
     include: {
-      category: true,
+      categories: { include: { category: true } },
       tags: { include: { tag: true } },
     },
   });
@@ -204,10 +209,7 @@ export async function updateCategory(id: string, name: string) {
 }
 
 export async function deleteCategory(id: string) {
-  await prisma.$transaction([
-    prisma.reel.updateMany({ where: { categoryId: id }, data: { categoryId: null } }),
-    prisma.category.delete({ where: { id } }),
-  ]);
+  await prisma.category.delete({ where: { id } });
   revalidatePath("/");
   return { success: true };
 }

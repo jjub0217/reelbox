@@ -36,10 +36,14 @@ export default async function ReelDetailPage({
         >
           인스타그램에서 보기 ↗
         </a>
-        {reel.category && (
+        {reel.categories.length > 0 && (
           <div className="mb-4">
             <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1.5">카테고리</p>
-            <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-xl text-sm">{reel.category.name}</span>
+            <div className="flex gap-1.5 flex-wrap">
+              {reel.categories.map(({ category }) => (
+                <span key={category.id} className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-xl text-sm">{category.name}</span>
+              ))}
+            </div>
           </div>
         )}
         {reel.tags.length > 0 && (

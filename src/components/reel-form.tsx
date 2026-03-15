@@ -18,7 +18,7 @@ export function ReelForm({
   const isEdit = !!reel;
 
   const [url, setUrl] = useState(reel?.url || "");
-  const [categoryId, setCategoryId] = useState(reel?.categoryId || "");
+  const [categoryIds, setCategoryIds] = useState<string[]>(reel?.categories.map(({ category }) => category.id) || []);
   const [tags, setTags] = useState<string[]>(reel?.tags.map(({ tag }) => tag.name) || []);
   const [memo, setMemo] = useState(reel?.memo || "");
   const [review, setReview] = useState(reel?.review || "");
@@ -56,7 +56,7 @@ export function ReelForm({
       url: url.trim(),
       memo: memo.trim() || undefined,
       review: review.trim() || undefined,
-      categoryId: categoryId || undefined,
+      categoryIds,
       tagNames: tags,
     };
 
@@ -98,7 +98,7 @@ export function ReelForm({
 
       <div>
         <label className="text-xs text-gray-400 font-semibold mb-2 block">카테고리</label>
-        <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
+        <CategorySelect categories={categories} value={categoryIds} onChange={setCategoryIds} />
       </div>
 
       <div>
