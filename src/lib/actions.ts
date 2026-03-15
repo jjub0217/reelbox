@@ -171,3 +171,26 @@ export async function createCategory(name: string) {
   const category = await prisma.category.create({ data: { name: trimmed } });
   return { success: true, category };
 }
+
+export async function updateCategory(id: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return { error: "카테고리명을 입력해주세요" };
+
+  const existing = await prisma.category.findFirst({
+    where: { name: trimmed, NOT: { id } },
+  });
+  if (existing) return { error: "이미 존재하는 카테고리입니다" };
+
+  await prisma.category.update({ where: { id }, data: { name: trimmed } });
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function deleteCategory(id: string) {
+  await prisma.$transaction([
+    prisma.reel.updateMany({ where: { categoryId: id }, data: { categoryId: null } }),
+    prisma.category.delete({ where: { id } }),
+  ]);
+  revalidatePath("/");
+  return { success: true };
+}
