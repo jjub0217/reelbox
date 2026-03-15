@@ -26,7 +26,7 @@ export function ReelCard({ reel }: { reel: ReelWithRelations }) {
             ))}
           </div>
           {reel.memo && (
-            <p className="text-[11px] text-gray-400 truncate">{reel.memo}</p>
+            <p className="text-[11px] text-gray-400 truncate mt-2">{reel.memo}</p>
           )}
         </div>
       </div>
