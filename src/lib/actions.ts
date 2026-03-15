@@ -122,11 +122,14 @@ export async function getReels({
   }
 
   if (search) {
-    where.OR = [
-      { memo: { contains: search, mode: "insensitive" } },
-      { tags: { some: { tag: { name: { contains: search, mode: "insensitive" } } } } },
-      { category: { name: { contains: search, mode: "insensitive" } } },
-    ];
+    const keywords = search.trim().split(/\s+/).filter(Boolean);
+    where.AND = keywords.map((keyword) => ({
+      OR: [
+        { memo: { contains: keyword, mode: "insensitive" as const } },
+        { tags: { some: { tag: { name: { contains: keyword, mode: "insensitive" as const } } } } },
+        { category: { name: { contains: keyword, mode: "insensitive" as const } } },
+      ],
+    }));
   }
 
   const reels = await prisma.reel.findMany({
