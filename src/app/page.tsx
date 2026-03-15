@@ -29,7 +29,15 @@ export default async function HomePage({
         </Link>
       </div>
       <SearchBar />
-      <CategoryFilter categories={categories} />
+      <div className="flex items-center gap-2 px-6 pb-1">
+        <CategoryFilter categories={categories} />
+        <Link
+          href="/categories"
+          className="shrink-0 text-gray-500 hover:text-purple-400 text-xs pb-4"
+        >
+          관리
+        </Link>
+      </div>
       <ReelGrid
         initialReels={items}
         initialCursor={nextCursor}
