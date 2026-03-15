@@ -13,7 +13,7 @@ export function ReelCard({ reel }: { reel: ReelWithRelations }) {
           )}
         </div>
         <div className="p-3">
-          <div className="flex gap-1 flex-wrap mb-2">
+          <div className="flex gap-1 flex-wrap">
             {reel.category && (
               <span className="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full text-[10px]">
                 {reel.category.name}
