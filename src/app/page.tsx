@@ -23,7 +23,7 @@ export default async function HomePage({
   return (
     <div>
       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
-        <h1 className="text-xl font-bold text-purple-100">ReelBox</h1>
+        <Link href="/"><h1 className="text-xl font-bold text-purple-100">ReelBox</h1></Link>
         <Link href="/reels/new" className="bg-purple-600 px-4 py-2 rounded-lg text-sm">
           + 릴스 추가
         </Link>
