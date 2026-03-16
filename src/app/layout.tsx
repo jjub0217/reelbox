@@ -27,6 +27,10 @@ export const metadata: Metadata = {
     title: "ReelBox",
     description: "인스타그램 릴스를 카테고리, 태그, 메모와 함께 저장하고 검색할 수 있는 개인 웹 서비스",
   },
+  icons: {
+    icon: "/icon-32.png",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
