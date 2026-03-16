@@ -5,16 +5,29 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  const emailError = emailTouched && email && !EMAIL_REGEX.test(email)
+    ? "유효한 이메일 형식을 입력해주세요."
+    : "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError("유효한 이메일 형식을 입력해주세요.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -34,14 +47,18 @@ export default function LoginPage() {
     <div className="flex flex-col justify-center min-h-screen px-8">
       <h1 className="text-2xl font-bold text-purple-100 text-center mb-8">ReelBox</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="이메일"
-          required
-          className="bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
-        />
+        <div>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setEmailTouched(true)}
+            placeholder="이메일"
+            required
+            className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
+          />
+          {emailError && <p className="text-red-400 text-xs mt-1.5 px-1">{emailError}</p>}
+        </div>
         <input
           type="password"
           value={password}
