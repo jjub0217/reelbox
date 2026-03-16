@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     description: "인스타그램 릴스를 카테고리, 태그, 메모와 함께 저장하고 검색할 수 있는 개인 웹 서비스",
     url: BASE_URL,
     locale: "ko_KR",
+    images: [{ url: `${BASE_URL}/icon-512.png`, width: 512, height: 512 }],
   },
   twitter: {
     card: "summary",
