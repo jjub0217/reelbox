@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "ReelBox",
   description: "인스타그램 릴스 스마트 저장 & 검색",
   manifest: "/manifest.json",
+  verification: {
+    google: "QwSeEYXUKCcLgTD8CtBEEpERKpp34sHBD_6r8dvKM2Q",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
