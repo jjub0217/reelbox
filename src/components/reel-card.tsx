@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ReelWithRelations } from "@/types";
 import { toggleVisited } from "@/lib/actions";
 
-export function ReelCard({ reel }: { reel: ReelWithRelations }) {
+export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; priority?: boolean }) {
   const [visited, setVisited] = useState(reel.visited);
 
   async function handleToggle(e: React.MouseEvent) {
@@ -20,7 +20,14 @@ export function ReelCard({ reel }: { reel: ReelWithRelations }) {
       <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors">
         <div className="bg-gray-700 h-30 flex items-center justify-center relative">
           {reel.thumbnail ? (
-            <img src={reel.thumbnail} alt="" className="w-full h-full object-cover" />
+            <img
+              src={reel.thumbnail}
+              alt=""
+              className="w-full h-full object-cover"
+              loading={priority ? "eager" : "lazy"}
+              decoding={priority ? "sync" : "async"}
+              fetchPriority={priority ? "high" : "low"}
+            />
           ) : (
             <span className="text-gray-500 text-2xl">🎬</span>
           )}

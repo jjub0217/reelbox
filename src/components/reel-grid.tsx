@@ -59,8 +59,8 @@ export function ReelGrid({
   return (
     <div className="px-6 pb-6">
       <div className="grid grid-cols-2 gap-3.5">
-        {reels.map((reel) => (
-          <ReelCard key={reel.id} reel={reel} />
+        {reels.map((reel, index) => (
+          <ReelCard key={reel.id} reel={reel} priority={index < 2} />
         ))}
       </div>
       {cursor && (

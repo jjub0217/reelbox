@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { SearchBar } from "@/components/search-bar";
-import { CategoryFilter } from "@/components/category-filter";
+import nextDynamic from "next/dynamic";
+import { Suspense } from "react";
 import { ReelGrid } from "@/components/reel-grid";
 import { LogoutButton } from "@/components/logout-button";
 import { getReels, getCategories } from "@/lib/actions";
+
+const SearchBar = nextDynamic(() => import("@/components/search-bar").then((m) => m.SearchBar));
+const CategoryFilter = nextDynamic(() => import("@/components/category-filter").then((m) => m.CategoryFilter));
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +20,7 @@ export default async function HomePage({
   const categoryId = params.category;
 
   const [{ items, nextCursor }, categories] = await Promise.all([
-    getReels({ search, categoryId }),
+    getReels({ search, categoryId, take: 10 }),
     getCategories(),
   ]);
 
@@ -32,9 +35,13 @@ export default async function HomePage({
           </Link>
         </div>
       </div>
-      <SearchBar />
+      <Suspense>
+        <SearchBar />
+      </Suspense>
       <div className="flex items-center gap-2 px-6 pb-1">
-        <CategoryFilter categories={categories} />
+        <Suspense>
+          <CategoryFilter categories={categories} />
+        </Suspense>
         <Link
           href="/categories"
           className="shrink-0 text-gray-500 hover:text-purple-400 text-xs pb-4"
