@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getReel } from "@/lib/actions";
@@ -83,11 +84,13 @@ export default async function ReelDetailPage({
         <ReelDetailActions reelId={reel.id} />
       </div>
       <div className="p-6">
-        <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 flex items-center justify-center mb-5 overflow-hidden">
+        <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 relative mb-5 overflow-hidden">
           {reel.thumbnail ? (
-            <img src={reel.thumbnail} alt="" className="w-full h-full object-cover" />
+            <Image src={reel.thumbnail} alt="" fill className="object-cover" sizes="420px" priority />
           ) : (
-            <span className="text-gray-500 text-3xl">🎬</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-gray-500 text-3xl">🎬</span>
+            </div>
           )}
         </div>
         <a
