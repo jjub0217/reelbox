@@ -249,6 +249,22 @@ export async function deleteCategory(id: string) {
   return { success: true };
 }
 
+export async function getUserStats() {
+  const userId = await requireAuth();
+  const [totalReels, visitedReels] = await Promise.all([
+    prisma.reel.count({ where: { userId } }),
+    prisma.reel.count({ where: { userId, visited: true } }),
+  ]);
+  return { totalReels, visitedReels };
+}
+
+export async function getUserEmail() {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.email || "";
+}
+
 export async function signOut() {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
