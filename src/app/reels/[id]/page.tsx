@@ -1,9 +1,47 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getReel } from "@/lib/actions";
 import { ReelDetailActions } from "./detail-actions";
 
 export const dynamic = "force-dynamic";
+
+const BASE_URL = "https://reelbox-pi.vercel.app";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const reel = await getReel(id);
+  if (!reel) return {};
+
+  const categories = reel.categories.map(({ category }: { category: { name: string } }) => category.name);
+  const tags = reel.tags.map(({ tag }: { tag: { name: string } }) => tag.name);
+  const description = [
+    categories.length > 0 ? `[${categories.join(", ")}]` : "",
+    tags.length > 0 ? tags.join(", ") : "",
+    reel.memo || "",
+  ].filter(Boolean).join(" · ") || "저장된 릴스";
+
+  return {
+    title: description.slice(0, 60),
+    description: description.slice(0, 155),
+    openGraph: {
+      title: description.slice(0, 60),
+      description: description.slice(0, 155),
+      url: `${BASE_URL}/reels/${id}`,
+      type: "article",
+      ...(reel.thumbnail ? { images: [{ url: reel.thumbnail, width: 640, height: 640 }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: description.slice(0, 60),
+      description: description.slice(0, 155),
+    },
+  };
+}
 
 export default async function ReelDetailPage({
   params,
@@ -14,8 +52,32 @@ export default async function ReelDetailPage({
   const reel = await getReel(id);
   if (!reel) notFound();
 
+  const categories = reel.categories.map(({ category }: { category: { name: string } }) => category.name);
+  const tags = reel.tags.map(({ tag }: { tag: { name: string } }) => tag.name);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    name: categories.length > 0 ? categories.join(", ") : "릴스",
+    description: reel.memo || undefined,
+    url: `${BASE_URL}/reels/${id}`,
+    image: reel.thumbnail || undefined,
+    datePublished: reel.createdAt.toISOString(),
+    dateModified: reel.updatedAt.toISOString(),
+    keywords: tags.join(", ") || undefined,
+    publisher: {
+      "@type": "Organization",
+      name: "ReelBox",
+      url: BASE_URL,
+    },
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
         <Link href="/" className="text-gray-400">← 뒤로</Link>
         <ReelDetailActions reelId={reel.id} />

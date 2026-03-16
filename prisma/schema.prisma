@@ -8,21 +8,29 @@ datasource db {
 
 model Reel {
   id         String         @id @default(cuid())
-  url        String         @unique
+  url        String
   thumbnail  String?
   memo       String?
   review     String?
   visited    Boolean        @default(false)
+  userId     String
   categories ReelCategory[]
   tags       ReelTag[]
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
+
+  @@unique([url, userId])
+  @@index([userId])
 }
 
 model Category {
-  id    String         @id @default(cuid())
-  name  String         @unique
-  reels ReelCategory[]
+  id     String         @id @default(cuid())
+  name   String
+  userId String
+  reels  ReelCategory[]
+
+  @@unique([name, userId])
+  @@index([userId])
 }
 
 model ReelCategory {
@@ -35,9 +43,13 @@ model ReelCategory {
 }
 
 model Tag {
-  id    String    @id @default(cuid())
-  name  String    @unique
-  reels ReelTag[]
+  id     String    @id @default(cuid())
+  name   String
+  userId String
+  reels  ReelTag[]
+
+  @@unique([name, userId])
+  @@index([userId])
 }
 
 model ReelTag {

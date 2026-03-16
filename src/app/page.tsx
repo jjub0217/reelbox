@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { CategoryFilter } from "@/components/category-filter";
 import { ReelGrid } from "@/components/reel-grid";
+import { LogoutButton } from "@/components/logout-button";
 import { getReels, getCategories } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +25,12 @@ export default async function HomePage({
     <div>
       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
         <Link href="/"><h1 className="text-xl font-bold text-purple-100">ReelBox</h1></Link>
-        <Link href="/reels/new" className="bg-purple-600 px-4 py-2 rounded-lg text-sm">
-          + 릴스 추가
-        </Link>
+        <div className="flex items-center gap-3">
+          <LogoutButton />
+          <Link href="/reels/new" className="bg-purple-600 px-4 py-2 rounded-lg text-sm">
+            + 릴스 추가
+          </Link>
+        </div>
       </div>
       <SearchBar />
       <div className="flex items-center gap-2 px-6 pb-1">

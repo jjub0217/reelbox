@@ -4,6 +4,7 @@ import { prisma } from "./db";
 import { extractThumbnail } from "./og";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { requireAuth } from "./auth";
 
 export async function createReel(formData: {
   url: string;
@@ -12,9 +13,12 @@ export async function createReel(formData: {
   categoryIds: string[];
   tagNames: string[];
 }) {
+  const userId = await requireAuth();
   const { url, memo, review, categoryIds, tagNames } = formData;
 
-  const existing = await prisma.reel.findUnique({ where: { url } });
+  const existing = await prisma.reel.findUnique({
+    where: { url_userId: { url, userId } },
+  });
   if (existing) {
     return { error: "이미 저장된 릴스입니다" };
   }
@@ -25,9 +29,9 @@ export async function createReel(formData: {
     tagNames.map(async (name) => {
       const normalized = name.trim().toLowerCase();
       return prisma.tag.upsert({
-        where: { name: normalized },
+        where: { name_userId: { name: normalized, userId } },
         update: {},
-        create: { name: normalized },
+        create: { name: normalized, userId },
       });
     })
   );
@@ -38,6 +42,7 @@ export async function createReel(formData: {
       thumbnail,
       memo: memo || null,
       review: review || null,
+      userId,
       categories: {
         create: categoryIds.map((categoryId) => ({ categoryId })),
       },
@@ -61,10 +66,14 @@ export async function updateReel(
     tagNames: string[];
   }
 ) {
+  const userId = await requireAuth();
   const { url, memo, review, categoryIds, tagNames } = formData;
 
+  const reel = await prisma.reel.findFirst({ where: { id, userId } });
+  if (!reel) return { error: "릴스를 찾을 수 없습니다" };
+
   const existing = await prisma.reel.findFirst({
-    where: { url, NOT: { id } },
+    where: { url, userId, NOT: { id } },
   });
   if (existing) {
     return { error: "이미 저장된 릴스입니다" };
@@ -74,9 +83,9 @@ export async function updateReel(
     tagNames.map(async (name) => {
       const normalized = name.trim().toLowerCase();
       return prisma.tag.upsert({
-        where: { name: normalized },
+        where: { name_userId: { name: normalized, userId } },
         update: {},
-        create: { name: normalized },
+        create: { name: normalized, userId },
       });
     })
   );
@@ -106,7 +115,11 @@ export async function updateReel(
 }
 
 export async function toggleVisited(id: string) {
-  const reel = await prisma.reel.findUnique({ where: { id }, select: { visited: true } });
+  const userId = await requireAuth();
+  const reel = await prisma.reel.findFirst({
+    where: { id, userId },
+    select: { visited: true },
+  });
   if (!reel) return { error: "릴스를 찾을 수 없습니다" };
 
   await prisma.reel.update({ where: { id }, data: { visited: !reel.visited } });
@@ -116,6 +129,10 @@ export async function toggleVisited(id: string) {
 }
 
 export async function deleteReel(id: string) {
+  const userId = await requireAuth();
+  const reel = await prisma.reel.findFirst({ where: { id, userId } });
+  if (!reel) return { error: "릴스를 찾을 수 없습니다" };
+
   await prisma.reel.delete({ where: { id } });
   revalidatePath("/");
   return { success: true };
@@ -132,7 +149,8 @@ export async function getReels({
   cursor?: string;
   take?: number;
 }) {
-  const where: Prisma.ReelWhereInput = {};
+  const userId = await requireAuth();
+  const where: Prisma.ReelWhereInput = { userId };
 
   if (categoryId === "uncategorized") {
     where.categories = { none: {} };
@@ -180,26 +198,39 @@ export async function getReel(id: string) {
 }
 
 export async function getCategories() {
-  return prisma.category.findMany({ orderBy: { name: "asc" } });
+  const userId = await requireAuth();
+  return prisma.category.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+  });
 }
 
 export async function createCategory(name: string) {
+  const userId = await requireAuth();
   const trimmed = name.trim();
   if (!trimmed) return { error: "카테고리명을 입력해주세요" };
 
-  const existing = await prisma.category.findUnique({ where: { name: trimmed } });
+  const existing = await prisma.category.findUnique({
+    where: { name_userId: { name: trimmed, userId } },
+  });
   if (existing) return { error: "이미 존재하는 카테고리입니다" };
 
-  const category = await prisma.category.create({ data: { name: trimmed } });
+  const category = await prisma.category.create({
+    data: { name: trimmed, userId },
+  });
   return { success: true, category };
 }
 
 export async function updateCategory(id: string, name: string) {
+  const userId = await requireAuth();
   const trimmed = name.trim();
   if (!trimmed) return { error: "카테고리명을 입력해주세요" };
 
+  const category = await prisma.category.findFirst({ where: { id, userId } });
+  if (!category) return { error: "카테고리를 찾을 수 없습니다" };
+
   const existing = await prisma.category.findFirst({
-    where: { name: trimmed, NOT: { id } },
+    where: { name: trimmed, userId, NOT: { id } },
   });
   if (existing) return { error: "이미 존재하는 카테고리입니다" };
 
@@ -209,7 +240,17 @@ export async function updateCategory(id: string, name: string) {
 }
 
 export async function deleteCategory(id: string) {
+  const userId = await requireAuth();
+  const category = await prisma.category.findFirst({ where: { id, userId } });
+  if (!category) return { error: "카테고리를 찾을 수 없습니다" };
+
   await prisma.category.delete({ where: { id } });
   revalidatePath("/");
   return { success: true };
+}
+
+export async function signOut() {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  await supabase.auth.signOut();
 }
