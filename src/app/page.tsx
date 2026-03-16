@@ -27,7 +27,7 @@ export default async function HomePage({
   return (
     <div>
       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
-        <Link href="/"><h1 className="text-xl font-bold text-purple-100">ReelBox</h1></Link>
+        <Link href="/"><img src="/logo.png" alt="ReelBox" className="h-8 w-8" /></Link>
         <div className="flex items-center gap-3">
           <LogoutButton />
           <Link href="/reels/new" className="bg-purple-600 px-4 py-2 rounded-lg text-sm">
