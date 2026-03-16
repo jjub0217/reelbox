@@ -34,7 +34,12 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+      if (error.message.includes("request this after")) {
+        const seconds = error.message.match(/(\d+) seconds/)?.[1] || "";
+        setError(`보안을 위해 ${seconds}초 후에 다시 시도해주세요.`);
+      } else {
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+      }
       setLoading(false);
       return;
     }

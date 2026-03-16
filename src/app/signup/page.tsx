@@ -61,7 +61,12 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
-      setError(error.message);
+      if (error.message.includes("request this after")) {
+        const seconds = error.message.match(/(\d+) seconds/)?.[1] || "";
+        setError(`보안을 위해 ${seconds}초 후에 다시 시도해주세요.`);
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
       return;
     }
