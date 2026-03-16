@@ -28,6 +28,7 @@ export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; 
               className="object-cover"
               sizes="(max-width: 420px) 50vw, 200px"
               priority={priority}
+              fetchPriority={priority ? "high" : "low"}
             />
           ) : (
             <span className="text-gray-500 text-2xl">🎬</span>
