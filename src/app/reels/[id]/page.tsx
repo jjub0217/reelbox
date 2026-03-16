@@ -40,7 +40,7 @@ export default async function ReelDetailPage({
           <div className="mb-4">
             <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1.5">카테고리</p>
             <div className="flex gap-1.5 flex-wrap">
-              {reel.categories.map(({ category }) => (
+              {reel.categories.map(({ category }: { category: { id: string; name: string } }) => (
                 <span key={category.id} className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-xl text-sm">{category.name}</span>
               ))}
             </div>
@@ -50,7 +50,7 @@ export default async function ReelDetailPage({
           <div className="mb-4">
             <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1.5">태그</p>
             <div className="flex gap-1.5 flex-wrap">
-              {reel.tags.map(({ tag }) => (
+              {reel.tags.map(({ tag }: { tag: { id: string; name: string } }) => (
                 <span key={tag.id} className="bg-green-500/20 text-green-400 px-3 py-1 rounded-xl text-sm">{tag.name}</span>
               ))}
             </div>
