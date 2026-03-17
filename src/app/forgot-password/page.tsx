@@ -1,23 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
 
-  const emailError = emailTouched && email && !EMAIL_REGEX.test(email)
-    ? "유효한 이메일 형식을 입력해주세요."
-    : "";
+  const emailError =
+    emailTouched && email && !EMAIL_REGEX.test(email)
+      ? "유효한 이메일 형식을 입력해주세요."
+      : "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,26 +30,55 @@ export default function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/settings/password`,
+    });
 
     if (error) {
       if (error.message.includes("request this after")) {
         const seconds = error.message.match(/(\d+) seconds/)?.[1] || "";
         setError(`보안을 위해 ${seconds}초 후에 다시 시도해주세요.`);
       } else {
-        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+        setError(error.message);
       }
       setLoading(false);
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setSuccess(true);
+    setLoading(false);
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col justify-center min-h-screen px-8">
+        <h1 className="text-2xl font-bold text-purple-100 text-center mb-4">
+          ReelBox
+        </h1>
+        <p className="text-center text-sm text-gray-300 mb-2">
+          비밀번호 재설정 링크를 이메일로 보냈습니다.
+        </p>
+        <p className="text-center text-sm text-gray-400 mb-8">
+          이메일을 확인해주세요.
+        </p>
+        <Link
+          href="/login"
+          className="text-center text-sm text-purple-400 hover:underline"
+        >
+          로그인으로 돌아가기
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col justify-center min-h-screen px-8">
-      <h1 className="text-2xl font-bold text-purple-100 text-center mb-8">ReelBox</h1>
+      <h1 className="text-2xl font-bold text-purple-100 text-center mb-2">
+        ReelBox
+      </h1>
+      <p className="text-center text-sm text-gray-400 mb-8">
+        가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내드립니다.
+      </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <input
@@ -62,34 +90,22 @@ export default function LoginPage() {
             required
             className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
           />
-          {emailError && <p className="text-red-400 text-xs mt-1.5 px-1">{emailError}</p>}
+          {emailError && (
+            <p className="text-red-400 text-xs mt-1.5 px-1">{emailError}</p>
+          )}
         </div>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호"
-          required
-          className="bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
-        />
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
           className="bg-purple-600 py-3 rounded-xl text-sm font-semibold disabled:opacity-50"
         >
-          {loading ? "로그인 중..." : "로그인"}
+          {loading ? "전송 중..." : "재설정 링크 보내기"}
         </button>
       </form>
-      <p className="text-center text-sm text-gray-400 mt-4">
-        <Link href="/forgot-password" className="text-gray-400 hover:underline">
-          비밀번호를 잊으셨나요?
-        </Link>
-      </p>
-      <p className="text-center text-sm text-gray-400 mt-3">
-        계정이 없으신가요?{" "}
-        <Link href="/signup" className="text-purple-400 hover:underline">
-          회원가입
+      <p className="text-center text-sm text-gray-400 mt-6">
+        <Link href="/login" className="text-purple-400 hover:underline">
+          로그인으로 돌아가기
         </Link>
       </p>
     </div>

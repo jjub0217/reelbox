@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "@/lib/actions";
-import { Mail, Film, Star, FolderCog, LogOut, X } from "lucide-react";
+import { Mail, Film, Star, FolderCog, KeyRound, LogOut, X } from "lucide-react";
 
 export function Sidebar({
   open,
@@ -88,6 +88,14 @@ export function Sidebar({
             >
               <FolderCog size={16} className="text-gray-500" />
               <span className="text-sm">카테고리 관리</span>
+            </Link>
+            <Link
+              href="/settings/password"
+              onClick={onClose}
+              className="flex items-center gap-2.5 text-gray-300 hover:text-gray-100 py-2"
+            >
+              <KeyRound size={16} className="text-gray-500" />
+              <span className="text-sm">비밀번호 변경</span>
             </Link>
           </div>
 
