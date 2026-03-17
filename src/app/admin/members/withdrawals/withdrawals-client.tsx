@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { WithdrawalDetailModal } from "../users/withdrawal-detail-modal";
 
 interface WithdrawalRow {
@@ -11,8 +13,30 @@ interface WithdrawalRow {
   createdAt: string;
 }
 
-export function WithdrawalsClient({ withdrawals }: { withdrawals: WithdrawalRow[] }) {
+export function WithdrawalsClient({
+  withdrawals,
+  total,
+  page,
+  pageSize,
+  totalPages,
+}: {
+  withdrawals: WithdrawalRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  function goToPage(p: number) {
+    startTransition(() => {
+      const params = new URLSearchParams();
+      if (p > 1) params.set("page", String(p));
+      router.push(`/admin/members/withdrawals?${params.toString()}`);
+    });
+  }
 
   return (
     <>
@@ -26,7 +50,7 @@ export function WithdrawalsClient({ withdrawals }: { withdrawals: WithdrawalRow[
               <th className="text-left px-4 py-3 text-gray-400 font-medium w-32">탈퇴일</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={isPending ? "opacity-50" : ""}>
             {withdrawals.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
@@ -51,6 +75,56 @@ export function WithdrawalsClient({ withdrawals }: { withdrawals: WithdrawalRow[
             )}
           </tbody>
         </table>
+
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700">
+          <p className="text-sm text-gray-400">
+            총 {total}명{total > 0 && <> 중 {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}</>}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page <= 1}
+              className="p-1.5 rounded hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(
+                (p) =>
+                  p === 1 ||
+                  p === totalPages ||
+                  Math.abs(p - page) <= 2
+              )
+              .map((p, idx, arr) => {
+                const prev = arr[idx - 1];
+                const showEllipsis = prev !== undefined && p - prev > 1;
+                return (
+                  <span key={p}>
+                    {showEllipsis && (
+                      <span className="px-1 text-gray-500">...</span>
+                    )}
+                    <button
+                      onClick={() => goToPage(p)}
+                      className={`w-8 h-8 rounded text-sm transition-colors ${
+                        p === page
+                          ? "bg-purple-600 text-white"
+                          : "hover:bg-gray-700 text-gray-400"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </span>
+                );
+              })}
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= totalPages}
+              className="p-1.5 rounded hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {selectedId && (

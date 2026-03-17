@@ -256,11 +256,9 @@ export function UsersClient({
           </table>
         </div>
 
-        {data.totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700">
             <p className="text-sm text-gray-400">
-              총 {data.total}명 중 {(page - 1) * data.pageSize + 1}-
-              {Math.min(page * data.pageSize, data.total)}
+              총 {data.total}명{data.total > 0 && <> 중 {(page - 1) * data.pageSize + 1}-{Math.min(page * data.pageSize, data.total)}</>}
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -307,7 +305,6 @@ export function UsersClient({
               </button>
             </div>
           </div>
-        )}
       </div>
 
       {selectedUserId && (

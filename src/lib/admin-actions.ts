@@ -148,11 +148,22 @@ export async function getReelTrend() {
   return data;
 }
 
-export async function getWithdrawalStats() {
+export async function getWithdrawalStats({
+  page = 1,
+  pageSize = 10,
+}: {
+  page?: number;
+  pageSize?: number;
+} = {}) {
   await requireAdmin();
 
-  const [withdrawals, trend] = await Promise.all([
-    prisma.withdrawal.findMany({ orderBy: { createdAt: "desc" } }),
+  const [totalCount, withdrawals, trend] = await Promise.all([
+    prisma.withdrawal.count(),
+    prisma.withdrawal.findMany({
+      orderBy: { createdAt: "desc" },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+    }),
     prisma.withdrawal.groupBy({
       by: ["reason"],
       _count: true,
@@ -173,7 +184,10 @@ export async function getWithdrawalStats() {
   }));
 
   return {
-    total: withdrawals.length,
+    total: totalCount,
+    page,
+    pageSize,
+    totalPages: Math.ceil(totalCount / pageSize),
     withdrawals: withdrawals.map((w) => ({
       id: w.id,
       email: w.email,
