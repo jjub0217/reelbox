@@ -55,9 +55,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://scontent.cdninstagram.com" crossOrigin="anonymous" />
       </head>
       <body className="bg-gray-950 text-gray-100 min-h-screen">
-        <div className="mx-auto max-w-[420px] min-h-screen bg-gray-900">
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );

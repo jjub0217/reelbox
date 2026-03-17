@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/osejin/Downloads/.claude 복사본/**)",
+      "Read(//Users/osejin/Downloads/**)",
+      "Bash(find:*)",
+      "Bash(mdfind:*)",
+      "Bash(cp:*)",
+      "Bash(git add:*)",
+      "Bash(npx next:*)",
+      "Bash(source:*)",
+      "Bash(ls:*)",
+      "Bash(brew services:*)",
+      "Read(//opt/homebrew/var/**)",
+      "Read(//usr/local/**)",
+      "WebFetch(domain:reelbox-pi.vercel.app)",
+      "Bash(sips:*)",
+      "Bash(lsof:*)",
+      "Bash(pg_isready -h localhost -p 5432 2>&1)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

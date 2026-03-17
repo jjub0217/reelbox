@@ -265,8 +265,13 @@ export async function getUserEmail() {
   return user?.email || "";
 }
 
-export async function deleteAccount() {
+export async function deleteAccount({ reason, detail }: { reason: string; detail?: string }) {
   const userId = await requireAuth();
+
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const email = user?.email || "";
 
   await prisma.$transaction([
     prisma.reelCategory.deleteMany({ where: { reel: { userId } } }),
@@ -274,10 +279,9 @@ export async function deleteAccount() {
     prisma.reel.deleteMany({ where: { userId } }),
     prisma.category.deleteMany({ where: { userId } }),
     prisma.tag.deleteMany({ where: { userId } }),
+    prisma.withdrawal.create({ data: { email, reason, detail: detail || null } }),
   ]);
 
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
   await supabase.auth.signOut();
 
   return { success: true };

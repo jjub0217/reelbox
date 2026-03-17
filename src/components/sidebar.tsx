@@ -22,6 +22,8 @@ export function Sidebar({
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [withdrawalReason, setWithdrawalReason] = useState("");
+  const [withdrawalDetail, setWithdrawalDetail] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -41,8 +43,12 @@ export function Sidebar({
   }
 
   async function handleDeleteAccount() {
+    if (!withdrawalReason) return;
     setDeleting(true);
-    await deleteAccount();
+    await deleteAccount({
+      reason: withdrawalReason,
+      detail: withdrawalReason === "OTHER" ? withdrawalDetail : undefined,
+    });
     router.push("/login");
     router.refresh();
   }
@@ -133,19 +139,60 @@ export function Sidebar({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] px-6">
           <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-xs">
             <h3 className="text-base font-semibold mb-2">회원탈퇴</h3>
-            <p className="text-sm text-gray-400 mb-1">정말 탈퇴하시겠습니까?</p>
-            <p className="text-xs text-gray-500 mb-6">저장된 모든 릴스, 카테고리, 태그가 삭제되며 복구할 수 없습니다.</p>
+            <p className="text-xs text-gray-500 mb-4">저장된 모든 릴스, 카테고리, 태그가 삭제되며 복구할 수 없습니다.</p>
+            <p className="text-sm text-gray-400 mb-2">탈퇴 사유를 선택해주세요</p>
+            <div className="flex flex-col gap-2 mb-4">
+              {[
+                { value: "SERVICE_DISSATISFACTION", label: "서비스 불만족" },
+                { value: "PRIVACY_CONCERN", label: "개인정보 우려" },
+                { value: "LOW_USAGE", label: "사용 빈도 낮음" },
+                { value: "COMPETITOR", label: "다른 서비스 이용" },
+                { value: "OTHER", label: "기타" },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors ${
+                    withdrawalReason === opt.value
+                      ? "bg-red-600/20 text-red-400 border border-red-600/40"
+                      : "bg-gray-700 text-gray-300 border border-transparent"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="withdrawal-reason"
+                    value={opt.value}
+                    checked={withdrawalReason === opt.value}
+                    onChange={(e) => setWithdrawalReason(e.target.value)}
+                    className="hidden"
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+            {withdrawalReason === "OTHER" && (
+              <textarea
+                value={withdrawalDetail}
+                onChange={(e) => setWithdrawalDetail(e.target.value)}
+                placeholder="탈퇴 사유를 입력해주세요..."
+                rows={2}
+                className="w-full bg-gray-700 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-red-500 resize-none mb-4"
+              />
+            )}
             <div className="flex gap-3">
               <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 bg-gray-700 py-2.5 rounded-xl text-sm"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setWithdrawalReason("");
+                  setWithdrawalDetail("");
+                }}
+                className="flex-1 bg-gray-700 py-2.5 rounded-xl text-sm cursor-pointer"
               >
                 취소
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleting}
-                className="flex-1 bg-red-600 py-2.5 rounded-xl text-sm disabled:opacity-50"
+                disabled={deleting || !withdrawalReason}
+                className="flex-1 bg-red-600 py-2.5 rounded-xl text-sm disabled:opacity-50 cursor-pointer"
               >
                 {deleting ? "탈퇴 중..." : "탈퇴"}
               </button>

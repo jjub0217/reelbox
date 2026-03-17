@@ -52,6 +52,14 @@ model Tag {
   @@index([userId])
 }
 
+model Withdrawal {
+  id        String   @id @default(cuid())
+  email     String
+  reason    String
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
 model ReelTag {
   reelId String
   tagId  String
