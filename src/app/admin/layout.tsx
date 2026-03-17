@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { AdminSidebar } from "./admin-nav";
+import { AdminHeader } from "./admin-header";
+import { getUserEmail } from "@/lib/actions";
+import { prisma } from "@/lib/db";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Admin | ReelBox",
 };
+
+export const dynamic = "force-dynamic";
 
 const navItems = [
   { href: "/admin", label: "대시보드", icon: "LayoutDashboard" as const },
@@ -17,15 +24,27 @@ const navItems = [
   },
 ];
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const adminRole = await prisma.adminRole.findUnique({ where: { userId: user.id } });
+  if (!adminRole) redirect("/");
+
+  const email = user.email || "";
+
   return (
     <div className="flex min-h-screen bg-gray-950 text-gray-100">
       <AdminSidebar items={navItems} />
-      <main className="flex-1 p-8 overflow-auto">{children}</main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <AdminHeader email={email} />
+        <main className="flex-1 p-8 overflow-auto">{children}</main>
+      </div>
     </div>
   );
 }

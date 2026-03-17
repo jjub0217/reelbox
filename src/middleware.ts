@@ -34,8 +34,6 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/signup") ||
     request.nextUrl.pathname.startsWith("/forgot-password");
 
-  const isAdminPage = request.nextUrl.pathname.startsWith("/admin");
-
   if (!user && !isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -48,11 +46,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (isAdminPage && user?.email !== "devel.jjub@gmail.com") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+  // Admin route protection is handled by requireAdmin() in server actions
+  // Middleware only ensures user is authenticated
 
   return supabaseResponse;
 }

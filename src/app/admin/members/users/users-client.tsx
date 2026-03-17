@@ -4,14 +4,17 @@ import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ChevronLeft, ChevronRight, X, Info } from "lucide-react";
 import { UserDetailModal } from "./user-detail-modal";
+import { WithdrawalDetailModal } from "./withdrawal-detail-modal";
 
 interface UserRow {
   id: string;
   email: string;
   createdAt: string;
+  status: "active" | "withdrawn";
   reelCount: number;
   categoryCount: number;
   tagCount: number;
+  isAdmin: boolean;
 }
 
 interface UsersData {
@@ -70,33 +73,42 @@ function ColumnHeader({ label, tooltip, align }: { label: string; tooltip: strin
 export function UsersClient({
   data,
   search,
+  status,
   page,
 }: {
   data: UsersData;
   search: string;
+  status: string;
   page: number;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(search);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null);
+
+  function buildUrl(overrides: { search?: string; status?: string; page?: number }) {
+    const params = new URLSearchParams();
+    const s = overrides.search ?? search;
+    const st = overrides.status ?? status;
+    const p = overrides.page ?? 1;
+    if (s) params.set("search", s);
+    if (st) params.set("status", st);
+    if (p > 1) params.set("page", String(p));
+    return `/admin/members/users?${params.toString()}`;
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    startTransition(() => {
-      const params = new URLSearchParams();
-      if (searchInput) params.set("search", searchInput);
-      router.push(`/admin/users?${params.toString()}`);
-    });
+    startTransition(() => router.push(buildUrl({ search: searchInput, page: 1 })));
+  }
+
+  function handleStatusChange(newStatus: string) {
+    startTransition(() => router.push(buildUrl({ status: newStatus, page: 1 })));
   }
 
   function goToPage(p: number) {
-    startTransition(() => {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (p > 1) params.set("page", String(p));
-      router.push(`/admin/users?${params.toString()}`);
-    });
+    startTransition(() => router.push(buildUrl({ page: p })));
   }
 
   return (
@@ -123,19 +135,39 @@ export function UsersClient({
         >
           검색
         </button>
-        {search && (
+        {(search || status) && (
           <button
             type="button"
             onClick={() => {
               setSearchInput("");
-              startTransition(() => router.push("/admin/users"));
+              startTransition(() => router.push("/admin/members/users"));
             }}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+            className="px-3 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 rounded-lg text-sm transition-colors cursor-pointer"
           >
             초기화
           </button>
         )}
       </form>
+
+      <div className="flex gap-2 mb-6">
+        {[
+          { value: "", label: "전체" },
+          { value: "active", label: "활성" },
+          { value: "withdrawn", label: "탈퇴" },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => handleStatusChange(opt.value)}
+            className={`px-3 py-1.5 rounded-full text-xs transition-colors cursor-pointer ${
+              status === opt.value
+                ? "bg-purple-600 text-white"
+                : "bg-gray-800 text-gray-400 border border-gray-700 hover:text-gray-200"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       <div className="bg-gray-800 rounded-xl border border-gray-700">
         <div className="overflow-x-auto overflow-y-visible">
@@ -144,6 +176,12 @@ export function UsersClient({
               <tr className="border-b border-gray-700">
                 <th className="text-left px-4 py-3 text-gray-400 font-medium">
                   <ColumnHeader label="이메일" tooltip="사용자 식별 정보" />
+                </th>
+                <th className="text-center px-4 py-3 text-gray-400 font-medium w-20">
+                  권한
+                </th>
+                <th className="text-center px-4 py-3 text-gray-400 font-medium w-20">
+                  상태
                 </th>
                 <th className="text-left px-4 py-3 text-gray-400 font-medium w-32">
                   <ColumnHeader label="가입일" tooltip="사용자 증가 추세 파악" />
@@ -163,10 +201,31 @@ export function UsersClient({
               {data.users.map((user) => (
                 <tr
                   key={user.id}
-                  onClick={() => setSelectedUserId(user.id)}
-                  className="border-b border-gray-700/50 hover:bg-gray-750 hover:bg-gray-700/30 cursor-pointer transition-colors"
+                  onClick={() => {
+                    if (user.status === "active") setSelectedUserId(user.id);
+                    else setSelectedWithdrawalId(user.id);
+                  }}
+                  className="border-b border-gray-700/50 hover:bg-gray-700/30 cursor-pointer transition-colors"
                 >
                   <td className="px-4 py-3 text-gray-100">{user.email}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      user.isAdmin
+                        ? "bg-purple-600/20 text-purple-400"
+                        : "bg-gray-600/20 text-gray-400"
+                    }`}>
+                      {user.isAdmin ? "관리자" : "일반"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      user.status === "active"
+                        ? "bg-green-600/20 text-green-400"
+                        : "bg-gray-600/20 text-gray-400"
+                    }`}>
+                      {user.status === "active" ? "활성" : "탈퇴"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-gray-400">
                     {new Date(user.createdAt).toLocaleDateString("ko-KR")}
                   </td>
@@ -184,7 +243,7 @@ export function UsersClient({
               {data.users.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-gray-500"
                   >
                     {search
@@ -255,6 +314,12 @@ export function UsersClient({
         <UserDetailModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
+        />
+      )}
+      {selectedWithdrawalId && (
+        <WithdrawalDetailModal
+          withdrawalId={selectedWithdrawalId}
+          onClose={() => setSelectedWithdrawalId(null)}
         />
       )}
     </div>

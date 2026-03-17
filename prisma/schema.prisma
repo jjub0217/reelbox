@@ -52,6 +52,12 @@ model Tag {
   @@index([userId])
 }
 
+model AdminRole {
+  userId String @id
+  email  String
+  createdAt DateTime @default(now())
+}
+
 model Withdrawal {
   id        String   @id @default(cuid())
   email     String

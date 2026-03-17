@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, ExternalLink } from "lucide-react";
-import { getUserDetail } from "@/lib/admin-actions";
+import { X, ExternalLink, Shield, ShieldOff } from "lucide-react";
+import { getUserDetail, toggleAdminRole } from "@/lib/admin-actions";
 
 interface ReelItem {
   id: string;
@@ -19,6 +19,7 @@ interface UserDetailData {
   id: string;
   email: string;
   createdAt: string;
+  isAdmin: boolean;
   reels: ReelItem[];
   categories: { id: string; name: string }[];
   tags: { id: string; name: string }[];
@@ -33,6 +34,8 @@ export function UserDetailModal({
 }) {
   const [data, setData] = useState<UserDetailData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     getUserDetail(userId).then((result) => {
@@ -43,11 +46,26 @@ export function UserDetailModal({
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (showConfirm) {
+          setShowConfirm(false);
+        } else {
+          onClose();
+        }
+      }
     }
     document.addEventListener("keydown", handleEsc);
     return () => document.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  }, [onClose, showConfirm]);
+
+  async function handleToggleAdmin() {
+    if (!data) return;
+    setToggling(true);
+    const result = await toggleAdminRole(data.id, data.email);
+    setData({ ...data, isAdmin: result.isAdmin });
+    setToggling(false);
+    setShowConfirm(false);
+  }
 
   return (
     <div
@@ -58,9 +76,14 @@ export function UserDetailModal({
     >
       <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
-          <h3 className="text-lg font-bold">
-            {loading ? "로딩 중..." : data?.email || "사용자 상세"}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold">
+              {loading ? "로딩 중..." : data?.email || "사용자 상세"}
+            </h3>
+            {data?.isAdmin && (
+              <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 rounded-full text-xs">관리자</span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-1 rounded hover:bg-gray-700 transition-colors"
@@ -160,7 +183,55 @@ export function UserDetailModal({
             </div>
           )}
         </div>
+
+        {/* Footer */}
+        {!loading && data && (
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-700">
+            <button
+              onClick={() => setShowConfirm(true)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+                data.isAdmin
+                  ? "bg-red-600 text-white hover:bg-red-700"
+                  : "bg-purple-600 text-white hover:bg-purple-700"
+              }`}
+            >
+              {data.isAdmin ? <ShieldOff size={16} /> : <Shield size={16} />}
+              {data.isAdmin ? "관리자 해제" : "관리자 지정"}
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Admin Role Confirm Modal */}
+      {showConfirm && data && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] px-6">
+          <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-xs">
+            <h3 className="text-base font-semibold mb-2">
+              {data.isAdmin ? "관리자 해제" : "관리자 지정"}
+            </h3>
+            <p className="text-sm text-gray-400 mb-6">
+              {data.email}을(를) {data.isAdmin ? "관리자에서 해제" : "관리자로 지정"}하시겠습니까?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 bg-gray-700 py-2.5 rounded-xl text-sm cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleToggleAdmin}
+                disabled={toggling}
+                className={`flex-1 py-2.5 rounded-xl text-sm disabled:opacity-50 cursor-pointer ${
+                  data.isAdmin ? "bg-red-600" : "bg-purple-600"
+                }`}
+              >
+                {toggling ? "처리 중..." : "확인"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,7 +19,8 @@
       "Bash(pg_isready -h localhost -p 5432 2>&1)",
       "Bash(grep:*)",
       "Bash(cat:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

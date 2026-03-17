@@ -5,14 +5,16 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Pool } from "pg";
 
-const ADMIN_EMAIL = "devel.jjub@gmail.com";
-
 async function requireAdmin(): Promise<string> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || user.email !== ADMIN_EMAIL) redirect("/");
+  if (!user) redirect("/");
+
+  const adminRole = await prisma.adminRole.findUnique({ where: { userId: user.id } });
+  if (!adminRole) redirect("/");
+
   return user.id;
 }
 
@@ -207,12 +209,27 @@ export async function getWithdrawalTrend() {
   return data;
 }
 
+export async function toggleAdminRole(userId: string, email: string) {
+  await requireAdmin();
+
+  const existing = await prisma.adminRole.findUnique({ where: { userId } });
+  if (existing) {
+    await prisma.adminRole.delete({ where: { userId } });
+    return { isAdmin: false };
+  } else {
+    await prisma.adminRole.create({ data: { userId, email } });
+    return { isAdmin: true };
+  }
+}
+
 export async function getAdminUsers({
   search,
+  status,
   page = 1,
   pageSize = 10,
 }: {
   search?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 }) {
@@ -220,78 +237,109 @@ export async function getAdminUsers({
 
   const pool = getPool();
   try {
-    const offset = (page - 1) * pageSize;
+    // 활성 회원 + 탈퇴 로그 조회
+    const [activeResult, withdrawals] = await Promise.all([
+      pool.query("SELECT id, email, created_at FROM auth.users ORDER BY created_at DESC"),
+      prisma.withdrawal.findMany({ orderBy: { createdAt: "desc" } }),
+    ]);
 
-    let query: string;
-    let countQuery: string;
-    const params: (string | number)[] = [];
+    const withdrawnEmails = new Set(withdrawals.map((w) => w.email));
 
-    if (search) {
-      query = `SELECT id, email, created_at FROM auth.users WHERE email ILIKE $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`;
-      countQuery = `SELECT count(*)::int FROM auth.users WHERE email ILIKE $1`;
-      params.push(`%${search}%`, pageSize, offset);
-    } else {
-      query = `SELECT id, email, created_at FROM auth.users ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
-      countQuery = `SELECT count(*)::int FROM auth.users`;
-      params.push(pageSize, offset);
+    // auth.users에서 탈퇴 여부 판별
+    const activeUsers = activeResult.rows.map((u: { id: string; email: string; created_at: string }) => ({
+      id: u.id,
+      email: u.email,
+      createdAt: u.created_at,
+      status: (withdrawnEmails.has(u.email) ? "withdrawn" : "active") as "active" | "withdrawn",
+    }));
+
+    // auth.users에 없는 탈퇴 회원 추가
+    const authEmails = new Set(activeResult.rows.map((u: { email: string }) => u.email));
+    const withdrawnOnly = withdrawals
+      .filter((w) => !authEmails.has(w.email))
+      .map((w) => ({
+        id: w.id,
+        email: w.email,
+        createdAt: w.createdAt.toISOString(),
+        status: "withdrawn" as const,
+      }));
+
+    let allUsers = [...activeUsers, ...withdrawnOnly];
+
+    // 상태 필터
+    if (status === "active") {
+      allUsers = allUsers.filter((u) => u.status === "active");
+    } else if (status === "withdrawn") {
+      allUsers = allUsers.filter((u) => u.status === "withdrawn");
     }
 
-    const [usersResult, countResult] = await Promise.all([
-      pool.query(query, params),
-      pool.query(countQuery, search ? [`%${search}%`] : []),
-    ]);
+    // 검색 필터
+    if (search) {
+      allUsers = allUsers.filter((u) => u.email.toLowerCase().includes(search.toLowerCase()));
+    }
 
-    const userIds = usersResult.rows.map((u: { id: string }) => u.id);
+    // 정렬 (최신순)
+    allUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    const [reelCounts, categoryCounts, tagCounts] = await Promise.all([
-      prisma.reel.groupBy({
-        by: ["userId"],
-        where: { userId: { in: userIds } },
-        _count: true,
-      }),
-      prisma.category.groupBy({
-        by: ["userId"],
-        where: { userId: { in: userIds } },
-        _count: true,
-      }),
-      prisma.tag.groupBy({
-        by: ["userId"],
-        where: { userId: { in: userIds } },
-        _count: true,
-      }),
-    ]);
+    const total = allUsers.length;
+    const totalPages = Math.ceil(total / pageSize);
+    const offset = (page - 1) * pageSize;
+    const pagedUsers = allUsers.slice(offset, offset + pageSize);
 
-    const reelMap = Object.fromEntries(
-      reelCounts.map((r) => [r.userId, r._count])
-    );
-    const categoryMap = Object.fromEntries(
-      categoryCounts.map((c) => [c.userId, c._count])
-    );
-    const tagMap = Object.fromEntries(
-      tagCounts.map((t) => [t.userId, t._count])
-    );
+    const activeIds = pagedUsers.filter((u) => u.status === "active").map((u) => u.id);
 
-    const users = usersResult.rows.map(
-      (u: { id: string; email: string; created_at: string }) => ({
-        id: u.id,
-        email: u.email,
-        createdAt: u.created_at,
-        reelCount: reelMap[u.id] || 0,
-        categoryCount: categoryMap[u.id] || 0,
-        tagCount: tagMap[u.id] || 0,
-      })
-    );
+    const [reelCounts, categoryCounts, tagCounts, adminRoles] = activeIds.length > 0
+      ? await Promise.all([
+          prisma.reel.groupBy({ by: ["userId"], where: { userId: { in: activeIds } }, _count: true }),
+          prisma.category.groupBy({ by: ["userId"], where: { userId: { in: activeIds } }, _count: true }),
+          prisma.tag.groupBy({ by: ["userId"], where: { userId: { in: activeIds } }, _count: true }),
+          prisma.adminRole.findMany({ where: { userId: { in: activeIds } }, select: { userId: true } }),
+        ])
+      : [[], [], [], []];
 
-    return {
-      users,
-      total: countResult.rows[0].count,
-      page,
-      pageSize,
-      totalPages: Math.ceil(countResult.rows[0].count / pageSize),
-    };
+    const reelMap = Object.fromEntries(reelCounts.map((r) => [r.userId, r._count]));
+    const categoryMap = Object.fromEntries(categoryCounts.map((c) => [c.userId, c._count]));
+    const tagMap = Object.fromEntries(tagCounts.map((t) => [t.userId, t._count]));
+    const adminSet = new Set(adminRoles.map((a: { userId: string }) => a.userId));
+
+    const users = pagedUsers.map((u) => ({
+      id: u.id,
+      email: u.email,
+      createdAt: u.createdAt,
+      status: u.status,
+      reelCount: u.status === "active" ? (reelMap[u.id] || 0) : 0,
+      categoryCount: u.status === "active" ? (categoryMap[u.id] || 0) : 0,
+      tagCount: u.status === "active" ? (tagMap[u.id] || 0) : 0,
+      isAdmin: u.status === "active" ? adminSet.has(u.id) : false,
+    }));
+
+    return { users, total, page, pageSize, totalPages };
   } finally {
     await pool.end();
   }
+}
+
+export async function getWithdrawalDetail(withdrawalId: string) {
+  await requireAdmin();
+
+  const reasonMap: Record<string, string> = {
+    SERVICE_DISSATISFACTION: "서비스 불만족",
+    PRIVACY_CONCERN: "개인정보 우려",
+    LOW_USAGE: "사용 빈도 낮음",
+    COMPETITOR: "다른 서비스 이용",
+    OTHER: "기타",
+  };
+
+  const w = await prisma.withdrawal.findUnique({ where: { id: withdrawalId } });
+  if (!w) return null;
+
+  return {
+    id: w.id,
+    email: w.email,
+    reason: reasonMap[w.reason] || w.reason,
+    detail: w.detail,
+    createdAt: w.createdAt.toISOString(),
+  };
 }
 
 export async function getUserDetail(userId: string) {
@@ -311,7 +359,7 @@ export async function getUserDetail(userId: string) {
       created_at: string;
     };
 
-    const [reels, categories, tags] = await Promise.all([
+    const [reels, categories, tags, adminRole] = await Promise.all([
       prisma.reel.findMany({
         where: { userId },
         include: {
@@ -329,12 +377,14 @@ export async function getUserDetail(userId: string) {
         where: { userId },
         orderBy: { name: "asc" },
       }),
+      prisma.adminRole.findUnique({ where: { userId } }),
     ]);
 
     return {
       id: user.id,
       email: user.email,
       createdAt: user.created_at,
+      isAdmin: !!adminRole,
       reels,
       categories,
       tags,
