@@ -77,7 +77,7 @@ export async function getMemberStats() {
     ]);
 
     return {
-      totalUsers: totalResult.rows[0].count,
+      totalUsers: totalResult.rows[0].count - withdrawalCount,
       todaySignups: todayResult.rows[0].count,
       weekSignups: weekResult.rows[0].count,
       totalWithdrawals: withdrawalCount,
