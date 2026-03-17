@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signOut } from "@/lib/actions";
-import { Mail, Film, Star, FolderCog, KeyRound, LogOut, X } from "lucide-react";
+import { signOut, deleteAccount } from "@/lib/actions";
+import { Mail, Film, Star, FolderCog, KeyRound, LogOut, UserX, X } from "lucide-react";
 
 export function Sidebar({
   open,
@@ -20,6 +20,8 @@ export function Sidebar({
   visitedReels: number;
 }) {
   const router = useRouter();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -34,6 +36,13 @@ export function Sidebar({
 
   async function handleLogout() {
     await signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    await deleteAccount();
     router.push("/login");
     router.refresh();
   }
@@ -99,8 +108,8 @@ export function Sidebar({
             </Link>
           </div>
 
-          {/* Logout */}
-          <div className="px-5 py-4 border-t border-gray-800">
+          {/* Logout + Delete Account */}
+          <div className="px-5 py-4 border-t border-gray-800 flex flex-col gap-1">
             <button
               onClick={handleLogout}
               className="flex items-center gap-2.5 text-gray-400 hover:text-red-400 w-full py-2"
@@ -108,9 +117,42 @@ export function Sidebar({
               <LogOut size={16} />
               <span className="text-sm">로그아웃</span>
             </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-2.5 text-gray-500 hover:text-red-400 w-full py-2"
+            >
+              <UserX size={16} />
+              <span className="text-sm">회원탈퇴</span>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] px-6">
+          <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-xs">
+            <h3 className="text-base font-semibold mb-2">회원탈퇴</h3>
+            <p className="text-sm text-gray-400 mb-1">정말 탈퇴하시겠습니까?</p>
+            <p className="text-xs text-gray-500 mb-6">저장된 모든 릴스, 카테고리, 태그가 삭제되며 복구할 수 없습니다.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 bg-gray-700 py-2.5 rounded-xl text-sm"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 bg-red-600 py-2.5 rounded-xl text-sm disabled:opacity-50"
+              >
+                {deleting ? "탈퇴 중..." : "탈퇴"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
