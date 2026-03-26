@@ -6,6 +6,7 @@ import { TagInput } from "./tag-input";
 import { CategorySelect } from "./category-select";
 import { createReel, updateReel } from "@/lib/actions";
 import { CategoryOption, ReelWithRelations } from "@/types";
+import { normalizeInstagramUrl } from "@/lib/reel-url";
 
 export function ReelForm({
   categories,
@@ -27,13 +28,14 @@ export function ReelForm({
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(reel?.thumbnail || null);
 
   useEffect(() => {
-    if (!url.trim() || !url.includes("instagram.com")) {
+    const normalizedUrl = normalizeInstagramUrl(url);
+    if (!normalizedUrl) {
       setThumbnailPreview(reel?.thumbnail || null);
       return;
     }
     const timeout = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
+        const res = await fetch(`/api/og?url=${encodeURIComponent(normalizedUrl)}`);
         const data = await res.json();
         if (data.thumbnail) setThumbnailPreview(data.thumbnail);
       } catch {
@@ -41,7 +43,7 @@ export function ReelForm({
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [url]);
+  }, [url, reel?.thumbnail]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,11 +51,17 @@ export function ReelForm({
       setError("릴스 URL을 입력해주세요");
       return;
     }
+
+    const normalizedUrl = normalizeInstagramUrl(url);
+    if (!normalizedUrl) {
+      setError("올바른 인스타그램 릴스 URL을 입력해주세요");
+      return;
+    }
     setSubmitting(true);
     setError("");
 
     const formData = {
-      url: url.trim(),
+      url: normalizedUrl,
       memo: memo.trim() || undefined,
       review: review.trim() || undefined,
       categoryIds,
@@ -88,6 +96,9 @@ export function ReelForm({
           placeholder="https://www.instagram.com/reel/..."
           className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
         />
+        <p className="mt-2 text-xs text-gray-500">
+          인스타그램 `reel`, `reels`, `p` 링크만 저장할 수 있습니다.
+        </p>
       </div>
 
       {thumbnailPreview && (

@@ -1,6 +1,4 @@
-function isInstagramUrl(url: string): boolean {
-  return /instagram\.com\/(p|reel|reels)\//i.test(url);
-}
+import { isValidInstagramUrl } from "./reel-url";
 
 async function extractViaMicrolink(url: string): Promise<string | null> {
   try {
@@ -42,7 +40,7 @@ async function extractViaOgTags(url: string): Promise<string | null> {
 }
 
 export async function extractThumbnail(url: string): Promise<string | null> {
-  if (isInstagramUrl(url)) {
+  if (isValidInstagramUrl(url)) {
     return extractViaMicrolink(url);
   }
   return extractViaOgTags(url);

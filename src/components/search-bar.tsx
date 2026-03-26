@@ -36,7 +36,7 @@ export function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="검색 (태그, 메모, 카테고리...)"
+          placeholder="검색 (태그, 메모, 후기, 카테고리...)"
           className="w-full bg-gray-800 border border-gray-600 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
         />
       </div>

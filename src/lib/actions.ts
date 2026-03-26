@@ -5,6 +5,7 @@ import { extractThumbnail } from "./og";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { requireAuth } from "./auth";
+import { normalizeInstagramUrl } from "./reel-url";
 
 export async function createReel(formData: {
   url: string;
@@ -14,16 +15,21 @@ export async function createReel(formData: {
   tagNames: string[];
 }) {
   const userId = await requireAuth();
-  const { url, memo, review, categoryIds, tagNames } = formData;
+  const normalizedUrl = normalizeInstagramUrl(formData.url);
+  if (!normalizedUrl) {
+    return { error: "올바른 인스타그램 릴스 URL을 입력해주세요" };
+  }
+
+  const { memo, review, categoryIds, tagNames } = formData;
 
   const existing = await prisma.reel.findUnique({
-    where: { url_userId: { url, userId } },
+    where: { url_userId: { url: normalizedUrl, userId } },
   });
   if (existing) {
     return { error: "이미 저장된 릴스입니다" };
   }
 
-  const thumbnail = await extractThumbnail(url);
+  const thumbnail = await extractThumbnail(normalizedUrl);
 
   const tags = await Promise.all(
     tagNames.map(async (name) => {
@@ -38,7 +44,7 @@ export async function createReel(formData: {
 
   const reel = await prisma.reel.create({
     data: {
-      url,
+      url: normalizedUrl,
       thumbnail,
       memo: memo || null,
       review: review || null,
@@ -67,13 +73,18 @@ export async function updateReel(
   }
 ) {
   const userId = await requireAuth();
-  const { url, memo, review, categoryIds, tagNames } = formData;
+  const normalizedUrl = normalizeInstagramUrl(formData.url);
+  if (!normalizedUrl) {
+    return { error: "올바른 인스타그램 릴스 URL을 입력해주세요" };
+  }
+
+  const { memo, review, categoryIds, tagNames } = formData;
 
   const reel = await prisma.reel.findFirst({ where: { id, userId } });
   if (!reel) return { error: "릴스를 찾을 수 없습니다" };
 
   const existing = await prisma.reel.findFirst({
-    where: { url, userId, NOT: { id } },
+    where: { url: normalizedUrl, userId, NOT: { id } },
   });
   if (existing) {
     return { error: "이미 저장된 릴스입니다" };
@@ -96,7 +107,7 @@ export async function updateReel(
     prisma.reel.update({
       where: { id },
       data: {
-        url,
+        url: normalizedUrl,
         memo: memo || null,
         review: review || null,
         categories: {
@@ -163,6 +174,7 @@ export async function getReels({
     where.AND = keywords.map((keyword) => ({
       OR: [
         { memo: { contains: keyword, mode: "insensitive" as const } },
+        { review: { contains: keyword, mode: "insensitive" as const } },
         { tags: { some: { tag: { name: { contains: keyword, mode: "insensitive" as const } } } } },
         { categories: { some: { category: { name: { contains: keyword, mode: "insensitive" as const } } } } },
       ],
@@ -188,8 +200,10 @@ export async function getReels({
 }
 
 export async function getReel(id: string) {
-  return prisma.reel.findUnique({
-    where: { id },
+  const userId = await requireAuth();
+
+  return prisma.reel.findFirst({
+    where: { id, userId },
     include: {
       categories: { include: { category: true } },
       tags: { include: { tag: true } },
