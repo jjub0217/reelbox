@@ -10,7 +10,7 @@ export default async function CategoriesPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-800">
-        <Link href="/" className="text-gray-400">← 뒤로</Link>
+        <Link href="/" className="text-gray-400" aria-label="뒤로가기">←</Link>
         <h1 className="text-lg font-bold text-purple-100">카테고리 관리</h1>
       </div>
       <CategoryManager categories={categories} />

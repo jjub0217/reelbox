@@ -21,6 +21,7 @@ export async function createReel(formData: {
   }
 
   const { memo, review, categoryIds, tagNames } = formData;
+  const hasReview = Boolean(review?.trim());
 
   const existing = await prisma.reel.findUnique({
     where: { url_userId: { url: normalizedUrl, userId } },
@@ -48,6 +49,7 @@ export async function createReel(formData: {
       thumbnail,
       memo: memo || null,
       review: review || null,
+      visited: hasReview,
       userId,
       categories: {
         create: categoryIds.map((categoryId) => ({ categoryId })),
@@ -79,6 +81,7 @@ export async function updateReel(
   }
 
   const { memo, review, categoryIds, tagNames } = formData;
+  const hasReview = Boolean(review?.trim());
 
   const reel = await prisma.reel.findFirst({ where: { id, userId } });
   if (!reel) return { error: "릴스를 찾을 수 없습니다" };
@@ -110,6 +113,7 @@ export async function updateReel(
         url: normalizedUrl,
         memo: memo || null,
         review: review || null,
+        visited: hasReview ? true : reel.visited,
         categories: {
           create: categoryIds.map((categoryId) => ({ categoryId })),
         },

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ReelWithRelations } from "@/types";
 import { toggleVisited } from "@/lib/actions";
 
@@ -21,14 +20,13 @@ export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; 
       <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors">
         <div className="bg-gray-700 h-30 flex items-center justify-center relative">
           {reel.thumbnail ? (
-            <Image
+            <img
               src={reel.thumbnail}
               alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 420px) 50vw, 200px"
-              priority={priority}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading={priority ? "eager" : "lazy"}
               fetchPriority={priority ? "high" : "low"}
+              referrerPolicy="no-referrer"
             />
           ) : (
             <span className="text-gray-500 text-2xl">🎬</span>

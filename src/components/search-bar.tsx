@@ -22,7 +22,12 @@ export function SearchBar() {
         params.delete("search");
       }
       const queryString = params.toString();
-      router.push(queryString ? `${pathname}?${queryString}` : pathname);
+      const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      const currentUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+
+      if (nextUrl !== currentUrl) {
+        router.replace(nextUrl);
+      }
     }, 300);
 
     return () => {

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getReel } from "@/lib/actions";
 import { ReelDetailActions } from "./detail-actions";
+import { DetailVisitedToggle } from "./detail-visited-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -80,13 +80,21 @@ export default async function ReelDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
-        <Link href="/" className="text-gray-400">← 뒤로</Link>
+        <Link href="/" className="text-gray-400" aria-label="뒤로가기">←</Link>
         <ReelDetailActions reelId={reel.id} />
       </div>
       <div className="p-6">
         <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 relative mb-5 overflow-hidden">
+          <DetailVisitedToggle reelId={reel.id} initialVisited={reel.visited} />
           {reel.thumbnail ? (
-            <Image src={reel.thumbnail} alt="" fill className="object-cover" sizes="420px" priority />
+            <img
+              src={reel.thumbnail}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="eager"
+              fetchPriority="high"
+              referrerPolicy="no-referrer"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <span className="text-gray-500 text-3xl">🎬</span>
@@ -125,6 +133,17 @@ export default async function ReelDetailPage({
           <div className="mb-4">
             <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1.5">메모</p>
             <div className="bg-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-300 leading-relaxed">{reel.memo}</div>
+          </div>
+        )}
+        {!reel.review && (
+          <div className="mb-4 rounded-2xl border border-dashed border-gray-700 bg-gray-800/60 px-4 py-4">
+            <p className="text-sm font-medium text-gray-200">아직 후기가 없습니다</p>
+            <p className="mt-1 text-xs text-gray-400">
+              실제로 방문하거나 구매했다면 후기를 남겨두면 나중에 다시 찾기 쉬워집니다.
+            </p>
+            <Link href={`/reels/${reel.id}/edit#review`} className="mt-3 inline-block text-sm text-purple-400">
+              후기 작성하러 가기
+            </Link>
           </div>
         )}
         {reel.review && (

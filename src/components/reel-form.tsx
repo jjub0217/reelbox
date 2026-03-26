@@ -25,6 +25,7 @@ export function ReelForm({
   const [review, setReview] = useState(reel?.review || "");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitMode, setSubmitMode] = useState<"home" | "continue">("home");
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(reel?.thumbnail || null);
 
   useEffect(() => {
@@ -80,10 +81,39 @@ export function ReelForm({
 
     if (isEdit) {
       router.push(`/reels/${reel!.id}`);
-    } else {
-      router.push("/");
+      return;
     }
+
+    if (submitMode === "continue") {
+      setUrl("");
+      setCategoryIds([]);
+      setTags([]);
+      setMemo("");
+      setReview("");
+      setThumbnailPreview(null);
+      setSubmitting(false);
+      setSubmitMode("home");
+      return;
+    }
+
+    router.push("/");
   }
+
+  function handleContinueClick() {
+    setSubmitMode("continue");
+  }
+
+  function handleDefaultClick() {
+    setSubmitMode("home");
+  }
+
+  const submitLabel = submitting
+    ? "저장 중..."
+    : isEdit
+      ? "수정하기"
+      : "저장 후 홈으로";
+
+  const continueLabel = submitting ? "저장 중..." : "저장하고 계속 추가";
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-5">
@@ -97,7 +127,7 @@ export function ReelForm({
           className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500"
         />
         <p className="mt-2 text-xs text-gray-500">
-          인스타그램 `reel`, `reels`, `p` 링크만 저장할 수 있습니다.
+          인스타그램 게시물 화면에서 주소를 복사한 링크만 저장할 수 있습니다.
         </p>
       </div>
 
@@ -131,23 +161,49 @@ export function ReelForm({
       <div>
         <label className="text-xs text-gray-400 font-semibold mb-2 block">후기</label>
         <textarea
+          id="review"
           value={review}
           onChange={(e) => setReview(e.target.value)}
           placeholder="방문/구매 후기를 입력하세요..."
           rows={3}
-          className="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
+          className="w-full scroll-mt-24 bg-gray-800 border border-gray-600 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
         />
+        <p className="mt-2 text-xs text-gray-500">
+          후기를 입력하면 방문 완료 상태로 자동 반영됩니다.
+        </p>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full bg-purple-600 py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50"
-      >
-        {submitting ? "저장 중..." : isEdit ? "수정하기" : "저장하기"}
-      </button>
+      {isEdit ? (
+        <button
+          type="submit"
+          disabled={submitting}
+          onClick={handleDefaultClick}
+          className="w-full bg-purple-600 py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50"
+        >
+          {submitLabel}
+        </button>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="submit"
+            disabled={submitting}
+            onClick={handleDefaultClick}
+            className="bg-purple-600 py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50"
+          >
+            {submitLabel}
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            onClick={handleContinueClick}
+            className="bg-gray-800 border border-gray-600 py-3.5 rounded-xl text-sm font-semibold text-gray-100 disabled:opacity-50"
+          >
+            {continueLabel}
+          </button>
+        </div>
+      )}
     </form>
   );
 }
