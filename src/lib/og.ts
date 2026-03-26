@@ -1,4 +1,5 @@
 import { isValidInstagramUrl } from "./reel-url";
+import { normalizeThumbnailUrl } from "./thumbnail-url";
 
 async function extractViaMicrolink(url: string): Promise<string | null> {
   try {
@@ -7,7 +8,7 @@ async function extractViaMicrolink(url: string): Promise<string | null> {
       signal: AbortSignal.timeout(10000),
     });
     const data = await response.json();
-    return data?.data?.image?.url || null;
+    return normalizeThumbnailUrl(data?.data?.image?.url || null);
   } catch {
     return null;
   }
@@ -28,12 +29,12 @@ async function extractViaOgTags(url: string): Promise<string | null> {
     const match1 = html.match(
       /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i
     );
-    if (match1) return match1[1];
+    if (match1) return normalizeThumbnailUrl(match1[1]);
 
     const match2 = html.match(
       /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i
     );
-    return match2?.[1] || null;
+    return normalizeThumbnailUrl(match2?.[1] || null);
   } catch {
     return null;
   }
@@ -41,7 +42,9 @@ async function extractViaOgTags(url: string): Promise<string | null> {
 
 export async function extractThumbnail(url: string): Promise<string | null> {
   if (isValidInstagramUrl(url)) {
-    return extractViaMicrolink(url);
+    const microlinkImage = await extractViaMicrolink(url);
+    if (microlinkImage) return microlinkImage;
+    return extractViaOgTags(url);
   }
   return extractViaOgTags(url);
 }

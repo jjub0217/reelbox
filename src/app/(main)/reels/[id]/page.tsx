@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getReel } from "@/lib/actions";
 import { ReelDetailActions } from "./detail-actions";
 import { DetailVisitedToggle } from "./detail-visited-toggle";
+import { ReelThumbnail } from "@/components/reel-thumbnail";
 
 export const dynamic = "force-dynamic";
 
@@ -86,20 +87,15 @@ export default async function ReelDetailPage({
       <div className="p-6">
         <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 relative mb-5 overflow-hidden">
           <DetailVisitedToggle reelId={reel.id} initialVisited={reel.visited} />
-          {reel.thumbnail ? (
-            <img
-              src={reel.thumbnail}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="eager"
-              fetchPriority="high"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-gray-500 text-3xl">🎬</span>
-            </div>
-          )}
+          <ReelThumbnail
+            src={reel.thumbnail}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+            iconClassName="text-gray-500 text-3xl"
+            fallbackLabel="썸네일을 불러오지 못했어요"
+          />
         </div>
         <a
           href={reel.url}

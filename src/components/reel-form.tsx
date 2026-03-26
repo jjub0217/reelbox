@@ -7,6 +7,7 @@ import { CategorySelect } from "./category-select";
 import { createReel, updateReel } from "@/lib/actions";
 import { CategoryOption, ReelWithRelations } from "@/types";
 import { normalizeInstagramUrl } from "@/lib/reel-url";
+import { ReelThumbnail } from "./reel-thumbnail";
 
 export function ReelForm({
   categories,
@@ -27,20 +28,27 @@ export function ReelForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitMode, setSubmitMode] = useState<"home" | "continue">("home");
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(reel?.thumbnail || null);
+  const [previewAttempted, setPreviewAttempted] = useState(Boolean(reel?.thumbnail));
 
   useEffect(() => {
     const normalizedUrl = normalizeInstagramUrl(url);
     if (!normalizedUrl) {
       setThumbnailPreview(reel?.thumbnail || null);
+      setPreviewAttempted(Boolean(reel?.thumbnail));
       return;
     }
+
+    setPreviewAttempted(false);
+
     const timeout = setTimeout(async () => {
       try {
         const res = await fetch(`/api/og?url=${encodeURIComponent(normalizedUrl)}`);
         const data = await res.json();
-        if (data.thumbnail) setThumbnailPreview(data.thumbnail);
+        setThumbnailPreview(data.thumbnail || null);
+        setPreviewAttempted(true);
       } catch {
-        // ignore
+        setThumbnailPreview(null);
+        setPreviewAttempted(true);
       }
     }, 500);
     return () => clearTimeout(timeout);
@@ -131,9 +139,18 @@ export function ReelForm({
         </p>
       </div>
 
-      {thumbnailPreview && (
+      {(thumbnailPreview || previewAttempted) && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-          <img src={thumbnailPreview} alt="" className="w-full" />
+          <div className="aspect-square w-full max-h-80">
+            <ReelThumbnail
+              src={thumbnailPreview}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="eager"
+              fetchPriority="high"
+              fallbackLabel="썸네일을 불러오지 못했지만 저장은 가능합니다."
+            />
+          </div>
         </div>
       )}
 

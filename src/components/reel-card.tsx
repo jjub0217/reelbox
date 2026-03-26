@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ReelWithRelations } from "@/types";
 import { toggleVisited } from "@/lib/actions";
+import { ReelThumbnail } from "./reel-thumbnail";
 
 export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; priority?: boolean }) {
   const [visited, setVisited] = useState(reel.visited);
@@ -19,18 +20,13 @@ export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; 
     <Link href={`/reels/${reel.id}`}>
       <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors">
         <div className="bg-gray-700 h-30 flex items-center justify-center relative">
-          {reel.thumbnail ? (
-            <img
-              src={reel.thumbnail}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : "low"}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <span className="text-gray-500 text-2xl">🎬</span>
-          )}
+          <ReelThumbnail
+            src={reel.thumbnail}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "low"}
+          />
           <button
             onClick={handleToggle}
             className="absolute top-1.5 left-1.5 text-lg z-10"
