@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { requireAuth } from "./auth";
 import { normalizeInstagramUrl } from "./reel-url";
+import { normalizeTagName, normalizeTagNames } from "./tag-name";
 
 export async function createReel(formData: {
   url: string;
@@ -22,6 +23,7 @@ export async function createReel(formData: {
 
   const { memo, review, categoryIds, tagNames } = formData;
   const hasReview = Boolean(review?.trim());
+  const normalizedTagNames = normalizeTagNames(tagNames);
 
   const existing = await prisma.reel.findUnique({
     where: { url_userId: { url: normalizedUrl, userId } },
@@ -33,12 +35,11 @@ export async function createReel(formData: {
   const thumbnail = await extractThumbnail(normalizedUrl);
 
   const tags = await Promise.all(
-    tagNames.map(async (name) => {
-      const normalized = name.trim().toLowerCase();
+    normalizedTagNames.map(async (name) => {
       return prisma.tag.upsert({
-        where: { name_userId: { name: normalized, userId } },
+        where: { name_userId: { name, userId } },
         update: {},
-        create: { name: normalized, userId },
+        create: { name, userId },
       });
     })
   );
@@ -82,6 +83,7 @@ export async function updateReel(
 
   const { memo, review, categoryIds, tagNames } = formData;
   const hasReview = Boolean(review?.trim());
+  const normalizedTagNames = normalizeTagNames(tagNames);
 
   const reel = await prisma.reel.findFirst({ where: { id, userId } });
   if (!reel) return { error: "릴스를 찾을 수 없습니다" };
@@ -94,12 +96,11 @@ export async function updateReel(
   }
 
   const tags = await Promise.all(
-    tagNames.map(async (name) => {
-      const normalized = name.trim().toLowerCase();
+    normalizedTagNames.map(async (name) => {
       return prisma.tag.upsert({
-        where: { name_userId: { name: normalized, userId } },
+        where: { name_userId: { name, userId } },
         update: {},
-        create: { name: normalized, userId },
+        create: { name, userId },
       });
     })
   );
@@ -244,6 +245,25 @@ export async function getCategories() {
   });
 }
 
+export async function getTags() {
+  const userId = await requireAuth();
+  const tags = await prisma.tag.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+    include: {
+      _count: {
+        select: { reels: true },
+      },
+    },
+  });
+
+  return tags.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+    reelCount: tag._count.reels,
+  }));
+}
+
 export async function createCategory(name: string) {
   const userId = await requireAuth();
   const trimmed = name.trim();
@@ -258,6 +278,25 @@ export async function createCategory(name: string) {
     data: { name: trimmed, userId },
   });
   return { success: true, category };
+}
+
+export async function createTag(name: string) {
+  const userId = await requireAuth();
+  const normalized = normalizeTagName(name);
+  if (!normalized) return { error: "태그명을 입력해주세요" };
+
+  const existing = await prisma.tag.findUnique({
+    where: { name_userId: { name: normalized, userId } },
+  });
+  if (existing) return { error: "이미 존재하는 태그입니다" };
+
+  const tag = await prisma.tag.create({
+    data: { name: normalized, userId },
+  });
+  revalidatePath("/");
+  revalidatePath("/archive");
+  revalidatePath("/tags");
+  return { success: true, tag };
 }
 
 export async function updateCategory(id: string, name: string) {
@@ -278,6 +317,30 @@ export async function updateCategory(id: string, name: string) {
   return { success: true };
 }
 
+export async function updateTag(id: string, name: string) {
+  const userId = await requireAuth();
+  const normalized = normalizeTagName(name);
+  if (!normalized) return { error: "태그명을 입력해주세요" };
+
+  const tag = await prisma.tag.findFirst({ where: { id, userId } });
+  if (!tag) return { error: "태그를 찾을 수 없습니다" };
+
+  const existing = await prisma.tag.findFirst({
+    where: { name: normalized, userId, NOT: { id } },
+  });
+  if (existing) return { error: "이미 존재하는 태그입니다" };
+
+  await prisma.tag.update({
+    where: { id },
+    data: { name: normalized },
+  });
+  revalidatePath("/");
+  revalidatePath("/archive");
+  revalidatePath(`/reels/${id}`);
+  revalidatePath("/tags");
+  return { success: true };
+}
+
 export async function deleteCategory(id: string) {
   const userId = await requireAuth();
   const category = await prisma.category.findFirst({ where: { id, userId } });
@@ -285,6 +348,18 @@ export async function deleteCategory(id: string) {
 
   await prisma.category.delete({ where: { id } });
   revalidatePath("/");
+  return { success: true };
+}
+
+export async function deleteTag(id: string) {
+  const userId = await requireAuth();
+  const tag = await prisma.tag.findFirst({ where: { id, userId } });
+  if (!tag) return { error: "태그를 찾을 수 없습니다" };
+
+  await prisma.tag.delete({ where: { id } });
+  revalidatePath("/");
+  revalidatePath("/archive");
+  revalidatePath("/tags");
   return { success: true };
 }
 

@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { normalizeTagName } from "@/lib/tag-name";
 
 export function TagInput({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
   const [input, setInput] = useState("");
 
   function addTag() {
-    const trimmed = input.trim();
-    if (trimmed && !value.includes(trimmed.toLowerCase())) {
-      onChange([...value, trimmed.toLowerCase()]);
+    const normalized = normalizeTagName(input);
+    if (normalized && !value.includes(normalized)) {
+      onChange([...value, normalized]);
     }
     setInput("");
   }

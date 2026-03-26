@@ -15,3 +15,9 @@ export type CategoryOption = {
   id: string;
   name: string;
 };
+
+export type TagOption = {
+  id: string;
+  name: string;
+  reelCount?: number;
+};
