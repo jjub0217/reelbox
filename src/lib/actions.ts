@@ -152,11 +152,15 @@ export async function deleteReel(id: string) {
 export async function getReels({
   search,
   categoryId,
+  status,
+  sort = "newest",
   cursor,
   take = 20,
 }: {
   search?: string;
   categoryId?: string | "uncategorized";
+  status?: string;
+  sort?: string;
   cursor?: string;
   take?: number;
 }) {
@@ -167,6 +171,14 @@ export async function getReels({
     where.categories = { none: {} };
   } else if (categoryId) {
     where.categories = { some: { categoryId } };
+  }
+
+  if (status === "visited") {
+    where.visited = true;
+  } else if (status === "unvisited") {
+    where.visited = false;
+  } else if (status === "reviewed") {
+    where.review = { not: null };
   }
 
   if (search) {
@@ -181,13 +193,22 @@ export async function getReels({
     }));
   }
 
+  const orderBy: Prisma.ReelOrderByWithRelationInput[] =
+    sort === "oldest"
+      ? [{ createdAt: "asc" }]
+      : sort === "unvisited"
+        ? [{ visited: "asc" }, { createdAt: "desc" }]
+        : sort === "no-review"
+          ? [{ review: { sort: "asc", nulls: "first" } }, { createdAt: "desc" }]
+          : [{ createdAt: "desc" }];
+
   const reels = await prisma.reel.findMany({
     where,
     include: {
       categories: { include: { category: true } },
       tags: { include: { tag: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy,
     take: take + 1,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
   });

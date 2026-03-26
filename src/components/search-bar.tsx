@@ -1,11 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 
 export function SearchBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("search") || "");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -20,13 +21,14 @@ export function SearchBar() {
       } else {
         params.delete("search");
       }
-      router.push(`/?${params.toString()}`);
+      const queryString = params.toString();
+      router.push(queryString ? `${pathname}?${queryString}` : pathname);
     }, 300);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [query, searchParams, router]);
+  }, [query, searchParams, router, pathname]);
 
   return (
     <div className="px-6 pt-5 pb-3">

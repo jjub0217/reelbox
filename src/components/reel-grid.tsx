@@ -10,11 +10,15 @@ export function ReelGrid({
   initialCursor,
   search,
   categoryId,
+  status,
+  sort,
 }: {
   initialReels: ReelWithRelations[];
   initialCursor: string | null;
   search?: string;
   categoryId?: string;
+  status?: string;
+  sort?: string;
 }) {
   const [reels, setReels] = useState(initialReels);
   const [cursor, setCursor] = useState(initialCursor);
@@ -29,11 +33,11 @@ export function ReelGrid({
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
     setLoading(true);
-    const result = await getReels({ search, categoryId, cursor });
+    const result = await getReels({ search, categoryId, status, sort, cursor });
     setReels((prev) => [...prev, ...result.items]);
     setCursor(result.nextCursor);
     setLoading(false);
-  }, [cursor, loading, search, categoryId]);
+  }, [cursor, loading, search, categoryId, status, sort]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -49,9 +53,10 @@ export function ReelGrid({
   }, [loadMore]);
 
   if (reels.length === 0) {
+    const hasFilters = Boolean(search || categoryId || status);
     return (
       <div className="px-6 py-12 text-center text-gray-500 text-sm">
-        저장된 릴스가 없습니다
+        {hasFilters ? "조건에 맞는 릴스가 없습니다" : "저장된 릴스가 없습니다"}
       </div>
     );
   }

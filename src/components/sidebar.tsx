@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut, deleteAccount } from "@/lib/actions";
-import { Mail, Film, Star, FolderCog, KeyRound, LogOut, UserX, X } from "lucide-react";
+import { Mail, Film, Star, FolderCog, KeyRound, BookmarkCheck, LogOut, UserX, X } from "lucide-react";
 
 export function Sidebar({
   open,
@@ -96,6 +96,14 @@ export function Sidebar({
 
           {/* Menu */}
           <div className="px-5 py-4 flex-1">
+            <Link
+              href="/archive"
+              onClick={onClose}
+              className="flex items-center gap-2.5 text-gray-300 hover:text-gray-100 py-2"
+            >
+              <BookmarkCheck size={16} className="text-gray-500" />
+              <span className="text-sm">기록 보기</span>
+            </Link>
             <Link
               href="/categories"
               onClick={onClose}
