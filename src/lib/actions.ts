@@ -7,9 +7,11 @@ import { Prisma } from "@prisma/client";
 import { requireAuth } from "./auth";
 import { normalizeInstagramUrl } from "./reel-url";
 import { normalizeTagName, normalizeTagNames } from "./tag-name";
+import { normalizeThumbnailUrl } from "./thumbnail-url";
 
 export async function createReel(formData: {
   url: string;
+  thumbnail?: string | null;
   memo?: string;
   review?: string;
   categoryIds: string[];
@@ -32,7 +34,10 @@ export async function createReel(formData: {
     return { error: "이미 저장된 릴스입니다" };
   }
 
-  const thumbnail = await extractThumbnail(normalizedUrl);
+  const thumbnail =
+    formData.thumbnail !== undefined
+      ? normalizeThumbnailUrl(formData.thumbnail)
+      : await extractThumbnail(normalizedUrl);
 
   const tags = await Promise.all(
     normalizedTagNames.map(async (name) => {
@@ -69,6 +74,7 @@ export async function updateReel(
   id: string,
   formData: {
     url: string;
+    thumbnail?: string | null;
     memo?: string;
     review?: string;
     categoryIds: string[];
@@ -95,6 +101,13 @@ export async function updateReel(
     return { error: "이미 저장된 릴스입니다" };
   }
 
+  const thumbnail =
+    formData.thumbnail !== undefined
+      ? normalizeThumbnailUrl(formData.thumbnail)
+      : normalizedUrl !== reel.url
+        ? await extractThumbnail(normalizedUrl)
+        : reel.thumbnail;
+
   const tags = await Promise.all(
     normalizedTagNames.map(async (name) => {
       return prisma.tag.upsert({
@@ -112,6 +125,7 @@ export async function updateReel(
       where: { id },
       data: {
         url: normalizedUrl,
+        thumbnail,
         memo: memo || null,
         review: review || null,
         visited: hasReview ? true : reel.visited,
@@ -277,6 +291,8 @@ export async function createCategory(name: string) {
   const category = await prisma.category.create({
     data: { name: trimmed, userId },
   });
+  revalidatePath("/");
+  revalidatePath("/categories");
   return { success: true, category };
 }
 
@@ -314,6 +330,7 @@ export async function updateCategory(id: string, name: string) {
 
   await prisma.category.update({ where: { id }, data: { name: trimmed } });
   revalidatePath("/");
+  revalidatePath("/categories");
   return { success: true };
 }
 
@@ -348,6 +365,7 @@ export async function deleteCategory(id: string) {
 
   await prisma.category.delete({ where: { id } });
   revalidatePath("/");
+  revalidatePath("/categories");
   return { success: true };
 }
 

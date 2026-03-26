@@ -11,16 +11,23 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
   const [editName, setEditName] = useState("");
   const [newName, setNewName] = useState("");
   const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleCreate() {
-    if (!newName.trim()) return;
+    if (!newName.trim() || creating) return;
+    setCreating(true);
     setError("");
     const result = await createCategory(newName.trim());
     if (result.error) {
       setError(result.error);
+      setCreating(false);
       return;
     }
     setNewName("");
+    setError("");
+    setCreating(false);
     router.refresh();
   }
 
@@ -31,20 +38,34 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
   }
 
   async function handleUpdate() {
-    if (!editingId) return;
+    if (!editingId || saving) return;
+    setSaving(true);
     setError("");
     const result = await updateCategory(editingId, editName);
     if (result.error) {
       setError(result.error);
+      setSaving(false);
       return;
     }
     setEditingId(null);
+    setError("");
+    setSaving(false);
     router.refresh();
   }
 
   async function handleDelete(id: string, name: string) {
+    if (deletingId) return;
     if (!confirm(`"${name}" 카테고리를 삭제하시겠습니까?\n이 카테고리의 릴스는 미분류로 변경됩니다.`)) return;
-    await deleteCategory(id);
+    setDeletingId(id);
+    setError("");
+    const result = await deleteCategory(id);
+    if (result.error) {
+      setError(result.error);
+      setDeletingId(null);
+      return;
+    }
+    setDeletingId(null);
+    setError("");
     router.refresh();
   }
 
@@ -57,7 +78,10 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
           <input
             type="text"
             value={newName}
-            onChange={(e) => setNewName(e.target.value)}
+            onChange={(e) => {
+              setNewName(e.target.value);
+              if (error) setError("");
+            }}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             enterKeyHint="done"
             placeholder="카테고리명 입력..."
@@ -65,9 +89,10 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
           />
           <button
             onClick={handleCreate}
+            disabled={creating}
             className="bg-purple-600 px-4 py-3 rounded-xl text-sm font-semibold shrink-0"
           >
-            추가
+            {creating ? "추가 중..." : "추가"}
           </button>
         </div>
       </div>
@@ -91,7 +116,10 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
                     <input
                       type="text"
                       value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
+                      onChange={(e) => {
+                        setEditName(e.target.value);
+                        if (error) setError("");
+                      }}
                       onKeyDown={(e) => e.key === "Enter" && handleUpdate()}
                       enterKeyHint="done"
                       className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-purple-500"
@@ -99,9 +127,10 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
                     />
                     <button
                       onClick={handleUpdate}
+                      disabled={saving}
                       className="text-purple-400 text-sm font-semibold"
                     >
-                      저장
+                      {saving ? "저장 중..." : "저장"}
                     </button>
                     <button
                       onClick={() => { setEditingId(null); setError(""); }}
@@ -122,9 +151,10 @@ export function CategoryManager({ categories }: { categories: CategoryOption[] }
                       </button>
                       <button
                         onClick={() => handleDelete(cat.id, cat.name)}
+                        disabled={deletingId === cat.id}
                         className="text-gray-400 hover:text-red-400 text-sm"
                       >
-                        삭제
+                        {deletingId === cat.id ? "삭제 중..." : "삭제"}
                       </button>
                     </div>
                   </>

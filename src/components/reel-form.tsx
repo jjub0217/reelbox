@@ -71,6 +71,7 @@ export function ReelForm({
 
     const formData = {
       url: normalizedUrl,
+      thumbnail: previewAttempted ? thumbnailPreview : undefined,
       memo: memo.trim() || undefined,
       review: review.trim() || undefined,
       categoryIds,
