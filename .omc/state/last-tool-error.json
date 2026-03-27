@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"DATABASE_URL='postgresql://postgres.fjgrfpaatdjavqgzmpiv:ghdrlachl%2110@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres' npm run build 2>&1\",\"timeout\":120000,\"description\":\"Test bui...",
-  "error": "Exit code 1\n\n> reelbox-temp@0.1.0 build\n> next build\n\n▲ Next.js 16.1.6 (Turbopack)\n- Environments: .env\n\n  Creating an optimized production build ...\n✓ Compiled successfully in 1498.5ms\n  Running TypeScript ...\nFailed to compile.\n\n./src/lib/db.ts:14:34\nType error: Object literal may only specify known properties, and 'pool' does not exist in type 'Pool | PoolConfig'.\n\n\u001b[0m \u001b[90m 12 |\u001b[39m     ssl\u001b[33m:\u001b[39m process\u001b[33m.\u001b[39menv\u001b[33m.\u001b[39m\u001b[33mNODE_ENV\u001b[39m \u001b[33m===\u001b[39m \u001b[32m\"production\"\u001b[39m \u001b...",
-  "timestamp": "2026-03-12T12:23:43.371Z",
-  "retry_count": 1
-}
