@@ -20,6 +20,7 @@ export function ReelForm({
 }) {
   const router = useRouter();
   const isEdit = !!reel;
+  const initialNormalizedUrl = reel ? normalizeInstagramUrl(reel.url) : null;
 
   const [url, setUrl] = useState(reel?.url || "");
   const [categoryIds, setCategoryIds] = useState<string[]>(reel?.categories.map(({ category }) => category.id) || []);
@@ -31,16 +32,27 @@ export function ReelForm({
   const [submitMode, setSubmitMode] = useState<"home" | "continue">("home");
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(reel?.thumbnail || null);
   const [previewAttempted, setPreviewAttempted] = useState(Boolean(reel?.thumbnail));
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     const normalizedUrl = normalizeInstagramUrl(url);
     if (!normalizedUrl) {
       setThumbnailPreview(null);
       setPreviewAttempted(false);
+      setPreviewLoading(false);
       return;
     }
 
+    if (normalizedUrl === initialNormalizedUrl && reel?.thumbnail) {
+      setThumbnailPreview(reel.thumbnail);
+      setPreviewAttempted(true);
+      setPreviewLoading(false);
+      return;
+    }
+
+    setThumbnailPreview(null);
     setPreviewAttempted(false);
+    setPreviewLoading(true);
 
     const timeout = setTimeout(async () => {
       try {
@@ -48,13 +60,18 @@ export function ReelForm({
         const data = await res.json();
         setThumbnailPreview(data.thumbnail || null);
         setPreviewAttempted(true);
+        setPreviewLoading(false);
       } catch {
         setThumbnailPreview(null);
         setPreviewAttempted(true);
+        setPreviewLoading(false);
       }
     }, 500);
-    return () => clearTimeout(timeout);
-  }, [url]);
+    return () => {
+      clearTimeout(timeout);
+      setPreviewLoading(false);
+    };
+  }, [url, initialNormalizedUrl, reel?.thumbnail]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,6 +120,7 @@ export function ReelForm({
       setReview("");
       setThumbnailPreview(null);
       setPreviewAttempted(false);
+      setPreviewLoading(false);
       setSubmitting(false);
       setSubmitMode("home");
       return;
@@ -143,17 +161,27 @@ export function ReelForm({
         </p>
       </div>
 
-      {(thumbnailPreview || previewAttempted) && (
+      {(thumbnailPreview || previewAttempted || previewLoading) && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
           <div className="aspect-square w-full max-h-80">
-            <ReelThumbnail
-              src={thumbnailPreview}
-              alt=""
-              className="h-full w-full object-cover"
-              loading="eager"
-              fetchPriority="high"
-              fallbackLabel="썸네일을 불러오지 못했지만 저장은 가능합니다."
-            />
+            {previewLoading ? (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gray-700/90 px-4 text-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-500 border-t-purple-400" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-200">썸네일을 불러오는 중입니다</p>
+                  <p className="text-xs text-gray-400">추출까지 몇 초 정도 걸릴 수 있어요.</p>
+                </div>
+              </div>
+            ) : (
+              <ReelThumbnail
+                src={thumbnailPreview}
+                alt=""
+                className="h-full w-full object-cover"
+                loading="eager"
+                fetchPriority="high"
+                fallbackLabel="썸네일을 불러오지 못했지만 저장은 가능합니다."
+              />
+            )}
           </div>
         </div>
       )}
