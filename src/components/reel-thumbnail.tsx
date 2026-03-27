@@ -33,7 +33,9 @@ export function ReelThumbnail({
             <span className={iconClassName}>🎬</span>
         </div>
         {fallbackLabel ? (
-          <p className="max-w-[11rem] text-xs leading-relaxed text-gray-300">{fallbackLabel}</p>
+          <p className="max-w-[11rem] whitespace-pre-line text-xs leading-relaxed text-gray-300">
+            {fallbackLabel}
+          </p>
         ) : (
           <p className="text-xs text-gray-300">썸네일이 없습니다</p>
         )}

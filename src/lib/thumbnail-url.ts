@@ -1,5 +1,6 @@
 export function isRejectedThumbnailUrl(input: string | null | undefined): boolean {
   if (!input) return true;
+  if (input.startsWith("data:image/")) return false;
 
   try {
     const url = new URL(input);

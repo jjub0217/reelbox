@@ -89,7 +89,7 @@ export default async function ReelDetailPage({
         <ReelDetailActions reelId={reel.id} backHref={back} />
       </div>
       <div className="p-6">
-        <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 relative mb-5 overflow-hidden">
+        <div className="bg-gray-800 border border-gray-700 rounded-xl h-[48vh] min-h-80 max-h-[34rem] relative mb-5 overflow-hidden">
           <DetailVisitedToggle reelId={reel.id} initialVisited={reel.visited} />
           <ReelThumbnail
             src={reel.thumbnail}
