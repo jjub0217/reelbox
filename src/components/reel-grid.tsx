@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ReelCard } from "./reel-card";
 import { getReels } from "@/lib/actions";
 import { ReelWithRelations } from "@/types";
+import { clearListReturnState, readListReturnState } from "@/lib/list-navigation";
 
 export function ReelGrid({
   initialReels,
@@ -24,6 +26,9 @@ export function ReelGrid({
   const [cursor, setCursor] = useState(initialCursor);
   const [loading, setLoading] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const restoreIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     setReels(initialReels);
@@ -38,6 +43,86 @@ export function ReelGrid({
     setCursor(result.nextCursor);
     setLoading(false);
   }, [cursor, loading, search, categoryId, status, sort]);
+
+  useEffect(() => {
+    const query = searchParams.toString();
+    const currentUrl = query ? `${pathname}?${query}` : pathname;
+    const state = readListReturnState();
+
+    if (restoreIntervalRef.current !== null) {
+      window.clearInterval(restoreIntervalRef.current);
+      restoreIntervalRef.current = null;
+    }
+
+    if (!state || state.url !== currentUrl) return;
+
+    let attempts = 0;
+
+    const tryRestore = () => {
+      const latest = readListReturnState();
+      if (!latest || latest.url !== currentUrl) {
+        if (restoreIntervalRef.current !== null) {
+          window.clearInterval(restoreIntervalRef.current);
+          restoreIntervalRef.current = null;
+        }
+        return;
+      }
+
+      const reelId = latest.reelId;
+      const target = latest.scrollY;
+
+      if (reelId) {
+        const card = document.querySelector<HTMLElement>(`[data-reel-id="${reelId}"]`);
+        if (card) {
+          card.scrollIntoView({ block: "center", behavior: "auto" });
+          clearListReturnState();
+          if (restoreIntervalRef.current !== null) {
+            window.clearInterval(restoreIntervalRef.current);
+            restoreIntervalRef.current = null;
+          }
+          return;
+        }
+      }
+
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+      if (!reelId && maxScroll >= target) {
+        window.scrollTo({ top: target, behavior: "auto" });
+        clearListReturnState();
+        if (restoreIntervalRef.current !== null) {
+          window.clearInterval(restoreIntervalRef.current);
+          restoreIntervalRef.current = null;
+        }
+        return;
+      }
+
+      if (cursor && !loading) {
+        void loadMore();
+      }
+
+      attempts += 1;
+      if (attempts >= 40) {
+        if (maxScroll > 0) {
+          window.scrollTo({ top: Math.min(target, maxScroll), behavior: "auto" });
+        }
+        clearListReturnState();
+        if (restoreIntervalRef.current !== null) {
+          window.clearInterval(restoreIntervalRef.current);
+          restoreIntervalRef.current = null;
+        }
+      }
+    };
+
+    restoreIntervalRef.current = window.setInterval(tryRestore, 150);
+    tryRestore();
+
+    return () => {
+      if (restoreIntervalRef.current !== null) {
+        window.clearInterval(restoreIntervalRef.current);
+        restoreIntervalRef.current = null;
+      }
+    };
+  }, [pathname, searchParams, cursor, loading, loadMore]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

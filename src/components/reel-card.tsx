@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ReelWithRelations } from "@/types";
 import { toggleVisited } from "@/lib/actions";
 import { ReelThumbnail } from "./reel-thumbnail";
+import { writeListReturnState } from "@/lib/list-navigation";
 
 export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; priority?: boolean }) {
   const [visited, setVisited] = useState(reel.visited);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   async function handleToggle(e: React.MouseEvent) {
     e.preventDefault();
@@ -16,9 +20,26 @@ export function ReelCard({ reel, priority = false }: { reel: ReelWithRelations; 
     await toggleVisited(reel.id);
   }
 
+  function handleOpen() {
+    const query = searchParams.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+    writeListReturnState({
+      url,
+      scrollY: window.scrollY,
+      reelId: reel.id,
+    });
+  }
+
+  const query = searchParams.toString();
+  const backUrl = query ? `${pathname}?${query}` : pathname;
+  const detailHref = `/reels/${reel.id}?back=${encodeURIComponent(backUrl)}`;
+
   return (
-    <Link href={`/reels/${reel.id}`}>
-      <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors">
+    <Link href={detailHref} onClick={handleOpen}>
+      <div
+        data-reel-id={reel.id}
+        className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors"
+      >
         <div className="bg-gray-700 h-30 flex items-center justify-center relative">
           <ReelThumbnail
             src={reel.thumbnail}

@@ -6,7 +6,13 @@ import Link from "next/link";
 import { deleteReel } from "@/lib/actions";
 import { DeleteDialog } from "@/components/delete-dialog";
 
-export function ReelDetailActions({ reelId }: { reelId: string }) {
+export function ReelDetailActions({
+  reelId,
+  backHref,
+}: {
+  reelId: string;
+  backHref?: string;
+}) {
   const router = useRouter();
   const [showDelete, setShowDelete] = useState(false);
 
@@ -18,7 +24,12 @@ export function ReelDetailActions({ reelId }: { reelId: string }) {
   return (
     <>
       <div className="flex gap-3">
-        <Link href={`/reels/${reelId}/edit`} className="text-purple-400 text-sm">수정</Link>
+        <Link
+          href={backHref ? `/reels/${reelId}/edit?back=${encodeURIComponent(backHref)}` : `/reels/${reelId}/edit`}
+          className="text-purple-400 text-sm"
+        >
+          수정
+        </Link>
         <button onClick={() => setShowDelete(true)} className="text-red-400 text-sm">삭제</button>
       </div>
       <DeleteDialog open={showDelete} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />

@@ -5,6 +5,7 @@ import { getReel } from "@/lib/actions";
 import { ReelDetailActions } from "./detail-actions";
 import { DetailVisitedToggle } from "./detail-visited-toggle";
 import { ReelThumbnail } from "@/components/reel-thumbnail";
+import { BackToListButton } from "@/components/back-to-list-button";
 
 export const dynamic = "force-dynamic";
 
@@ -47,10 +48,13 @@ export async function generateMetadata({
 
 export default async function ReelDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ back?: string }>;
 }) {
   const { id } = await params;
+  const { back } = await searchParams;
   const reel = await getReel(id);
   if (!reel) notFound();
 
@@ -81,8 +85,8 @@ export default async function ReelDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
-        <Link href="/" className="text-gray-400" aria-label="뒤로가기">←</Link>
-        <ReelDetailActions reelId={reel.id} />
+        <BackToListButton backHref={back} />
+        <ReelDetailActions reelId={reel.id} backHref={back} />
       </div>
       <div className="p-6">
         <div className="bg-gray-800 border border-gray-700 rounded-xl h-50 relative mb-5 overflow-hidden">
@@ -137,7 +141,14 @@ export default async function ReelDetailPage({
             <p className="mt-1 text-xs text-gray-400">
               실제로 방문하거나 구매했다면 후기를 남겨두면 나중에 다시 찾기 쉬워집니다.
             </p>
-            <Link href={`/reels/${reel.id}/edit#review`} className="mt-3 inline-block text-sm text-purple-400">
+            <Link
+              href={
+                back
+                  ? `/reels/${reel.id}/edit?back=${encodeURIComponent(back)}#review`
+                  : `/reels/${reel.id}/edit#review`
+              }
+              className="mt-3 inline-block text-sm text-purple-400"
+            >
               후기 작성하러 가기
             </Link>
           </div>

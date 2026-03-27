@@ -12,9 +12,11 @@ import { ReelThumbnail } from "./reel-thumbnail";
 export function ReelForm({
   categories,
   reel,
+  backHref,
 }: {
   categories: CategoryOption[];
   reel?: ReelWithRelations;
+  backHref?: string;
 }) {
   const router = useRouter();
   const isEdit = !!reel;
@@ -33,8 +35,8 @@ export function ReelForm({
   useEffect(() => {
     const normalizedUrl = normalizeInstagramUrl(url);
     if (!normalizedUrl) {
-      setThumbnailPreview(reel?.thumbnail || null);
-      setPreviewAttempted(Boolean(reel?.thumbnail));
+      setThumbnailPreview(null);
+      setPreviewAttempted(false);
       return;
     }
 
@@ -52,7 +54,7 @@ export function ReelForm({
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [url, reel?.thumbnail]);
+  }, [url]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -89,7 +91,7 @@ export function ReelForm({
     }
 
     if (isEdit) {
-      router.push(`/reels/${reel!.id}`);
+      router.push(backHref ? `/reels/${reel!.id}?back=${encodeURIComponent(backHref)}` : `/reels/${reel!.id}`);
       return;
     }
 
@@ -100,6 +102,7 @@ export function ReelForm({
       setMemo("");
       setReview("");
       setThumbnailPreview(null);
+      setPreviewAttempted(false);
       setSubmitting(false);
       setSubmitMode("home");
       return;
